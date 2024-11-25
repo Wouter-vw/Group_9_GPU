@@ -1,7 +1,7 @@
 #include "Particles.h"
 #include "Alloc.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
+//#include <cuda.h>
+//#include <cuda_runtime.h>
 
 /** allocate particle arrays */
 void particle_allocate(struct parameters* param, struct particles* part, int is)
@@ -235,7 +235,8 @@ int mover_PC(struct particles* part, struct EMfield* field, struct grid* grd, st
 
 
 /** Interpolation Particle --> Grid: This is for species */
-void interpP2G(struct particles* part, struct interpDensSpecies* ids, struct grid* grd)
+void
+interpP2G(struct particles* part, struct interpDensSpecies* ids, struct grid* grd)
 {
     
     // arrays needed for interpolation
