@@ -43,3 +43,15 @@ add_definitions(
 
 # Create executable
 add_executable(sputniPIC ${SOURCES})
+
+add_custom_target(test2D
+        COMMAND sputniPIC "${CMAKE_SOURCE_DIR}/inputfiles/GEM_2D.inp"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        DEPENDS sputniPIC
+)
+
+add_custom_target(test3D
+        COMMAND sputniPIC "${CMAKE_SOURCE_DIR}/inputfiles/GEM_3D.inp"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        DEPENDS sputniPIC
+)
