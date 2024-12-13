@@ -96,11 +96,11 @@ inline void initGEM(struct Parameters* param, struct Grid* grd, struct EMfield* 
                         for (int jj=0; jj < part[is].npcely; jj++)
                             for (int kk=0; kk < part[is].npcely; kk++){
                                 // initialize each particle position and charge. Particle uniform in space
-                                part[is].x[counter] = (ii + .5)*(grd->dx/part[is].npcelx) + grd->XN[i][j][k];
-                                part[is].y[counter] = (jj + .5)*(grd->dy/part[is].npcely) + grd->YN[i][j][k];
-                                part[is].z[counter] = (kk + .5)*(grd->dz/part[is].npcelz) + grd->ZN[i][j][k];
+                                part[is].particles[counter].x = (ii + .5)*(grd->dx/part[is].npcelx) + grd->XN[i][j][k];
+                                part[is].particles[counter].y = (jj + .5)*(grd->dy/part[is].npcely) + grd->YN[i][j][k];
+                                part[is].particles[counter].z = (kk + .5)*(grd->dz/part[is].npcelz) + grd->ZN[i][j][k];
                                 // q = charge * statistical weight
-                                part[is].q[counter] =  (part[is].qom/fabs(part[is].qom))*(ids[is].rhoc[i][j][k]/part[is].npcel)*(1.0/grd->invVOL);
+                                part[is].particles[counter].q =  (part[is].qom/fabs(part[is].qom))*(ids[is].rhoc[i][j][k]/part[is].npcel)*(1.0/grd->invVOL);
                                 
                                 //////////////// Maxwellian ////////////////
                                 // u
@@ -108,9 +108,9 @@ inline void initGEM(struct Parameters* param, struct Grid* grd, struct EMfield* 
                                 prob  = sqrt(-2.0*log(1.0-.999999*harvest));
                                 harvest =   rand()/(double)RAND_MAX;
                                 theta = 2.0*M_PI*harvest;
-                                part[is].u[counter] = part[is].u0 + part[is].uth*prob*cos(theta);
+                                part[is].particles[counter].u = part[is].u0 + part[is].uth*prob*cos(theta);
                                 // check u
-                                if (part[is].u[counter] > param->c){
+                                if (part[is].particles[counter].u > param->c){
                                     std::cout << "ERROR - u VELOCITY > c !" << std::endl;
                                     exit(EXIT_FAILURE);
                                 }
@@ -119,14 +119,14 @@ inline void initGEM(struct Parameters* param, struct Grid* grd, struct EMfield* 
                                 prob  = sqrt(-2.0*log(1.0-.999999*harvest));
                                 harvest =   rand()/(double)RAND_MAX;
                                 theta = 2.0*M_PI*harvest;
-                                part[is].w[counter] = part[is].w0 + part[is].wth*prob*cos(theta);
-                                part[is].v[counter] = part[is].v0 + part[is].vth*prob*sin(theta);
+                                part[is].particles[counter].w = part[is].w0 + part[is].wth*prob*cos(theta);
+                                part[is].particles[counter].v = part[is].v0 + part[is].vth*prob*sin(theta);
                                 // check v and w
-                                if (part[is].v[counter] > param->c){
+                                if (part[is].particles[counter].v > param->c){
                                     std::cout << "ERROR - v VELOCITY > c !" << std::endl;
                                     exit(EXIT_FAILURE);
                                 }
-                                if (part[is].w[counter] > param->c){
+                                if (part[is].particles[counter].w > param->c){
                                     std::cout << "ERROR - w VELOCITY > c !" << std::endl;
                                     exit(EXIT_FAILURE);
                                 }

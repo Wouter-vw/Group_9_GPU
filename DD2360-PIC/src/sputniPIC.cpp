@@ -66,7 +66,8 @@ int main(int argc, char **argv) {
   Particles *part = new Particles[param.ns];
   // allocation
   for (int is = 0; is < param.ns; is++) {
-    particle_allocate(&param, &part[is], is);
+    part[is].allocate(&param, is);
+    // particle_allocate(&param, &part[is], is);
   }
 
   // Initialization
@@ -114,15 +115,19 @@ int main(int argc, char **argv) {
 
   /// Release the resources
   // deallocate field
+  std::cout << "deallocate grid\n";
   grid_deallocate(&grd);
+  std::cout << "deallocate field\n";
   field.deallocate(&grd);
   // interp
+  std::cout << "deallocate dense\n";
   interp_dens_net_deallocate(&grd, &idn);
 
   // Deallocate interpolated densities and particles
   for (int is = 0; is < param.ns; is++) {
     interp_dens_species_deallocate(&grd, &ids[is]);
-    particle_deallocate(&part[is]);
+    part[is].deallocate();
+    // particle_deallocate(&part[is]);
   }
 
   // stop timer
