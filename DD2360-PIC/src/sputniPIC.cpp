@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   interp_dens_net_allocate(&grd, &idn);
 
   // Allocate Particles
-  particles *part = new particles[param.ns];
+  Particles *part = new Particles[param.ns];
   // allocation
   for (int is = 0; is < param.ns; is++) {
     particle_allocate(&param, &part[is], is);
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   /// Release the resources
   // deallocate field
   grid_deallocate(&grd);
-  field_deallocate(&grd, &field);
+  field.deallocate(&grd);
   // interp
   interp_dens_net_deallocate(&grd, &idn);
 

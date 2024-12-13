@@ -26,7 +26,7 @@ struct particles_aux {
 };
 
 /** allocate particle arrays */
-void particle_aux_allocate(struct particles*, struct particles_aux*, int);
+void particle_aux_allocate(struct Particles*, struct particles_aux*, int);
 
 void particle_aux_deallocate(struct particles_aux*);
 

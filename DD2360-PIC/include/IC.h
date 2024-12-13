@@ -5,7 +5,7 @@
 #include <math.h>
 
 /** initialize for magnetic reconnection probelm with Harris current sheet */
-inline void initGEM(struct Parameters* param, struct Grid* grd, struct EMfield* field, struct EMfield_aux* field_aux, struct particles* part, struct interpDensSpecies* ids){
+inline void initGEM(struct Parameters* param, struct Grid* grd, struct EMfield* field, struct EMfield_aux* field_aux, struct Particles* part, struct interpDensSpecies* ids){
     
     // perturbation localized in X
     double pertX = 0.4;

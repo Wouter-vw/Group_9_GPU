@@ -11,7 +11,7 @@
 #include "EMfield.h"
 #include "InterpDensSpecies.h"
 
-struct particles {
+struct Particles {
     
     /** species ID: 0, 1, 2 , ... */
     int species_ID;
@@ -54,15 +54,15 @@ struct particles {
 };
 
 /** allocate particle arrays */
-void particle_allocate(struct Parameters*, struct particles*, int);
+void particle_allocate(struct Parameters*, struct Particles*, int);
 
 /** deallocate */
-void particle_deallocate(struct particles*);
+void particle_deallocate(struct Particles*);
 
 /** particle mover */
-int mover_PC(struct particles*, struct EMfield*, struct Grid*, struct Parameters*);
+int mover_PC(struct Particles*, struct EMfield*, struct Grid*, struct Parameters*);
 
 /** Interpolation Particle --> Grid: This is for species */
-void interpP2G(struct particles*, struct interpDensSpecies*, struct Grid*);
+void interpP2G(struct Particles*, struct interpDensSpecies*, struct Grid*);
 
 #endif

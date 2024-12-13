@@ -1,7 +1,7 @@
 #include "Particles_aux.h"
 
 /** allocate particle arrays */
-void particle_aux_allocate(struct particles* part, struct particles_aux* part_aux, int is)
+void particle_aux_allocate(struct Particles* part, struct particles_aux* part_aux, int is)
 {
     
     // set species ID

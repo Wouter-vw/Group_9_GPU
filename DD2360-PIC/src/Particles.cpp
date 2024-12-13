@@ -4,7 +4,7 @@
 //#include <cuda_runtime.h>
 
 /** allocate particle arrays */
-void particle_allocate(struct Parameters* param, struct particles* part, int is)
+void particle_allocate(struct Parameters* param, struct Particles* part, int is)
 {
     
     // set species ID
@@ -60,7 +60,7 @@ void particle_allocate(struct Parameters* param, struct particles* part, int is)
     
 }
 /** deallocate */
-void particle_deallocate(struct particles* part)
+void particle_deallocate(struct Particles* part)
 {
     // deallocate particle variables
     delete[] part->x;
@@ -73,7 +73,7 @@ void particle_deallocate(struct particles* part)
 }
 
 /** particle mover */
-int mover_PC(struct particles* part, struct EMfield* field, struct Grid* grd, struct Parameters* param)
+int mover_PC(struct Particles* part, struct EMfield* field, struct Grid* grd, struct Parameters* param)
 {
     // print species and subcycling
     std::cout << "***  MOVER with SUBCYCLYING "<< param->n_sub_cycles << " - species " << part->species_ID << " ***" << std::endl;
@@ -94,6 +94,9 @@ int mover_PC(struct particles* part, struct EMfield* field, struct Grid* grd, st
     // intermediate particle position and velocity
     FPpart xptilde, yptilde, zptilde, uptilde, vptilde, wptilde;
     
+    std::cout << "N sub cycles: " << part->n_sub_cycles << std::endl; 
+    std::cout << "N OP: " << part->nop << std::endl;
+    std::cout << "N iter mover: " << part->NiterMover << std::endl;
     // start subcycling
     for (int i_sub=0; i_sub <  part->n_sub_cycles; i_sub++){
         // move each particle with new fields
@@ -236,7 +239,7 @@ int mover_PC(struct particles* part, struct EMfield* field, struct Grid* grd, st
 
 /** Interpolation Particle --> Grid: This is for species */
 void
-interpP2G(struct particles* part, struct interpDensSpecies* ids, struct Grid* grd)
+interpP2G(struct Particles* part, struct interpDensSpecies* ids, struct Grid* grd)
 {
     
     // arrays needed for interpolation
