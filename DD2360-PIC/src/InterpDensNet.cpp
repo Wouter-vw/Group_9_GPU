@@ -3,7 +3,7 @@
 #include "InterpDensNet.h"
 
 /** allocated interpolated densities per species */
-void interp_dens_net_allocate(struct grid* grd, struct interpDensNet* idn)
+void interp_dens_net_allocate(struct Grid* grd, struct interpDensNet* idn)
 {
     
     // charge density defined on nodes and center cell
@@ -24,7 +24,7 @@ void interp_dens_net_allocate(struct grid* grd, struct interpDensNet* idn)
 }
 
 /** deallocate interpolated densities per species */
-void interp_dens_net_deallocate(struct grid* grd, struct interpDensNet* idn)
+void interp_dens_net_deallocate(struct Grid* grd, struct interpDensNet* idn)
 {
     
     // charge density
@@ -45,7 +45,7 @@ void interp_dens_net_deallocate(struct grid* grd, struct interpDensNet* idn)
 }
 
 /** set all the densities to zero */
-void setZeroDensities(struct interpDensNet* idn, struct interpDensSpecies* ids, struct grid* grd, int ns)
+void setZeroDensities(struct interpDensNet* idn, struct interpDensSpecies* ids, struct Grid* grd, int ns)
 {
     
     //////////////////////////////////////
@@ -117,12 +117,12 @@ void setZeroDensities(struct interpDensNet* idn, struct interpDensSpecies* ids, 
 
 
 /** set all the densities to zero */
-void sumOverSpecies(struct interpDensNet* idn, struct interpDensSpecies* ids, struct grid* grd, int ns)
+void sumOverSpecies(struct interpDensNet* idn, struct interpDensSpecies* ids, struct Grid* grd, int ns)
 {
     for (int is=0; is<ns; is++)
-        for (register int i=0; i <grd->nxn; i++)
-            for (register int j=0; j <grd->nyn; j++)
-                for (register int k=0; k <grd->nzn; k++){
+        for (int i=0; i <grd->nxn; i++)
+            for (int j=0; j <grd->nyn; j++)
+                for (int k=0; k <grd->nzn; k++){
                     
                     // density
                     idn->rhon[i][j][k]     += ids[is].rhon[i][j][k];

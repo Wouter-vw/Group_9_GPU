@@ -6,9 +6,9 @@
 #include "Grid.h"
 
 /** Smmoth Interpolation Quantity defined on Center */
-void smoothInterpScalarC(FPinterp***, grid*, parameters*);
+void smoothInterpScalarC(FPinterp***, Grid*, Parameters*);
 
 /** Smmoth Interpolation Quantity defined on Nodes */
-void smoothInterpScalarN(FPinterp***, grid*, parameters*);
+void smoothInterpScalarN(FPinterp***, Grid*, Parameters*);
 
 #endif

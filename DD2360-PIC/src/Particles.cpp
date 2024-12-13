@@ -4,7 +4,7 @@
 //#include <cuda_runtime.h>
 
 /** allocate particle arrays */
-void particle_allocate(struct parameters* param, struct particles* part, int is)
+void particle_allocate(struct Parameters* param, struct particles* part, int is)
 {
     
     // set species ID
@@ -73,7 +73,7 @@ void particle_deallocate(struct particles* part)
 }
 
 /** particle mover */
-int mover_PC(struct particles* part, struct EMfield* field, struct grid* grd, struct parameters* param)
+int mover_PC(struct particles* part, struct EMfield* field, struct Grid* grd, struct Parameters* param)
 {
     // print species and subcycling
     std::cout << "***  MOVER with SUBCYCLYING "<< param->n_sub_cycles << " - species " << part->species_ID << " ***" << std::endl;
@@ -236,7 +236,7 @@ int mover_PC(struct particles* part, struct EMfield* field, struct grid* grd, st
 
 /** Interpolation Particle --> Grid: This is for species */
 void
-interpP2G(struct particles* part, struct interpDensSpecies* ids, struct grid* grd)
+interpP2G(struct particles* part, struct interpDensSpecies* ids, struct Grid* grd)
 {
     
     // arrays needed for interpolation
@@ -248,7 +248,7 @@ interpP2G(struct particles* part, struct interpDensSpecies* ids, struct grid* gr
     int ix, iy, iz;
     
     
-    for (register long long i = 0; i < part->nop; i++) {
+    for (long long i = 0; i < part->nop; i++) {
         
         // determine cell: can we change to int()? is it faster?
         ix = 2 + int (floor((part->x[i] - grd->xStart) * grd->invdx));

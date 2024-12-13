@@ -1,7 +1,7 @@
 #include "InterpDensSpecies.h"
 
 /** allocated interpolated densities per species */
-void interp_dens_species_allocate(struct grid* grd, struct interpDensSpecies* ids, int is)
+void interp_dens_species_allocate(struct Grid* grd, struct interpDensSpecies* ids, int is)
 {
     // set species ID
     ids->species_ID = is;
@@ -32,7 +32,7 @@ void interp_dens_species_allocate(struct grid* grd, struct interpDensSpecies* id
 }
 
 /** deallocate interpolated densities per species */
-void interp_dens_species_deallocate(struct grid* grd, struct interpDensSpecies* ids)
+void interp_dens_species_deallocate(struct Grid* grd, struct interpDensSpecies* ids)
 {
     
     // deallocate 3D arrays
@@ -54,10 +54,10 @@ void interp_dens_species_deallocate(struct grid* grd, struct interpDensSpecies* 
 }
 
 /** deallocate interpolated densities per species */
-void interpN2Crho(struct interpDensSpecies* ids, struct grid* grd){
-    for (register int i = 1; i < grd->nxc - 1; i++)
-        for (register int j = 1; j < grd->nyc - 1; j++)
-            for (register int k = 1; k < grd->nzc - 1; k++){
+void interpN2Crho(struct interpDensSpecies* ids, struct Grid* grd){
+    for (int i = 1; i < grd->nxc - 1; i++)
+        for (int j = 1; j < grd->nyc - 1; j++)
+            for (int k = 1; k < grd->nzc - 1; k++){
                 ids->rhoc[i][j][k] = .125 * (ids->rhon[i][j][k] + ids->rhon[i + 1][j][k] + ids->rhon[i][j + 1][k] + ids->rhon[i][j][k + 1] +
                                        ids->rhon[i + 1][j + 1][k]+ ids->rhon[i + 1][j][k + 1] + ids->rhon[i][j + 1][k + 1] + ids->rhon[i + 1][j + 1][k + 1]);
             }

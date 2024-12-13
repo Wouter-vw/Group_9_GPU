@@ -54,15 +54,15 @@ struct particles {
 };
 
 /** allocate particle arrays */
-void particle_allocate(struct parameters*, struct particles*, int);
+void particle_allocate(struct Parameters*, struct particles*, int);
 
 /** deallocate */
 void particle_deallocate(struct particles*);
 
 /** particle mover */
-int mover_PC(struct particles*, struct EMfield*, struct grid*, struct parameters*);
+int mover_PC(struct particles*, struct EMfield*, struct Grid*, struct Parameters*);
 
 /** Interpolation Particle --> Grid: This is for species */
-void interpP2G(struct particles*, struct interpDensSpecies*, struct grid*);
+void interpP2G(struct particles*, struct interpDensSpecies*, struct Grid*);
 
 #endif

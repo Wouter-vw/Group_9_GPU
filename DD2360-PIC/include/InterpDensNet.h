@@ -30,15 +30,15 @@ struct interpDensNet {
 };
 
 /** allocated interpolated densities per species */
-void interp_dens_net_allocate(struct grid*, struct interpDensNet*);
+void interp_dens_net_allocate(struct Grid*, struct interpDensNet*);
 
 /** deallocate interpolated densities per species */
-void interp_dens_net_deallocate(struct grid*, struct interpDensNet*);
+void interp_dens_net_deallocate(struct Grid*, struct interpDensNet*);
 
 /** set all the densities to zero */
-void setZeroDensities(struct interpDensNet*, struct interpDensSpecies*, struct grid*, int);
+void setZeroDensities(struct interpDensNet*, struct interpDensSpecies*, struct Grid*, int);
 
 /** set all the densities to zero */
-void sumOverSpecies(struct interpDensNet*, struct interpDensSpecies*, struct grid*, int);
+void sumOverSpecies(struct interpDensNet*, struct interpDensSpecies*, struct Grid*, int);
 
 #endif

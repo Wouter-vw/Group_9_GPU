@@ -15,17 +15,17 @@
 
 
 /** Apply BC to scalar interp quantity defined on nodes - Interpolation quantity */
-void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param);
+void applyBCscalarDensN(FPinterp*** scalarN, Grid* grd, Parameters* param);
 
 /** Apply BC to scalar interp quantity defined on nodes - Interpolation quantity */
-void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param);
+void applyBCscalarFieldN(FPfield*** scalarN, Grid* grd, Parameters* param);
 
 
 ///////// USE THIS TO IMPOSE BC TO ELECTRIC FIELD
 ///////// NOW THIS IS FIXED TO ZERO
 
 /** Apply BC to scalar interp quantity defined on nodes - Interpolation quantity */
-void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param);
+void applyBCscalarFieldNzero(FPfield*** scalarN, Grid* grd, Parameters* param);
 
 ///////////////
 ////
@@ -35,7 +35,7 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param);
 ///////////////
 
 // apply boundary conditions to species interpolated densities
-void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct parameters* param);
+void applyBCids(struct interpDensSpecies* ids, struct Grid* grd, struct Parameters* param);
 
 
 //////////
@@ -44,13 +44,13 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
 
 
 /** Apply BC to scalar interp quantity defined on nodes - Interpolation quantity */
-void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param);
+void applyBCscalarDensC(FPinterp*** scalarC, Grid* grd, Parameters* param);
 
 /** Apply BC to scalar field quantity defined on center - Interpolation quantity */
-void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param);
+void applyBCscalarFieldC(FPfield*** scalarC, Grid* grd, Parameters* param);
 
 /** Apply BC to scalar field quantity defined on nodes - Interpolation quantity */
 // set to zero ghost cell
-void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param);
+void applyBCscalarFieldCzero(FPfield*** scalarC, Grid* grd, Parameters* param);
 
 #endif

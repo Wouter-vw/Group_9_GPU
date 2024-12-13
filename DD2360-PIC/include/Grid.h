@@ -8,7 +8,7 @@
 #include "PrecisionTypes.h"
 
 /** Grid Data */
-struct grid {
+struct Grid {
     /** number of cells - X direction, including + 2 (guard cells) */
     int nxc;
     /** number of nodes - X direction, including + 2 extra nodes for guard cells */
@@ -62,52 +62,52 @@ struct grid {
 };
 
 /** Set up the grid quantities */
-void setGrid(struct parameters*, struct grid*);
+void setGrid(struct Parameters*, struct Grid*);
 
 /** Set up the grid quantities */
-void printGrid(struct grid*);
+void printGrid(struct Grid*);
 
 /** allocate electric and magnetic field */
-void grid_deallocate(struct grid*);
+void grid_deallocate(struct Grid*);
 
 /** interpolation Node to Center */
-void interpN2Cfield(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, struct grid*);
+void interpN2Cfield(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, struct Grid*);
     
 /** interpolation Node to Center */
-void interpC2Ninterp(FPinterp***, FPinterp***, struct grid*);
+void interpC2Ninterp(FPinterp***, FPinterp***, struct Grid*);
 
 /** interpolation Node to Center */
-void interpC2Nfield(FPfield***, FPfield***, struct grid*);
+void interpC2Nfield(FPfield***, FPfield***, struct Grid*);
 
 /** interpolation Node to Center */
-void interpN2Cinterp(FPinterp***, FPinterp***, struct grid*);
+void interpN2Cinterp(FPinterp***, FPinterp***, struct Grid*);
 
 /** calculate gradient on nodes, given a scalar field defined on central points  */
-void gradC2N(FPfield***, FPfield***, FPfield***, FPfield***, grid*);
+void gradC2N(FPfield***, FPfield***, FPfield***, FPfield***, Grid*);
 
 /** calculate gradient on nodes, given a scalar field defined on central points  */
-void gradN2C(FPfield***, FPfield***, FPfield***, FPfield***, grid*);
+void gradN2C(FPfield***, FPfield***, FPfield***, FPfield***, Grid*);
 
 /** calculate divergence on central points, given a vector field defined on nodes  */
-void divN2C(FPfield***, FPfield***, FPfield***, FPfield***, grid*);
+void divN2C(FPfield***, FPfield***, FPfield***, FPfield***, Grid*);
 
 /** calculate divergence on central points, given a Tensor field defined on nodes  */
-void divSymmTensorN2C(FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, grid*);
+void divSymmTensorN2C(FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, FPinterp***, Grid*);
 
 /** calculate divergence on nodes, given a vector field defined on central points  */
-void divC2N(FPfield***, FPfield***, FPfield***, FPfield***, grid*);
+void divC2N(FPfield***, FPfield***, FPfield***, FPfield***, Grid*);
 
 /** calculate curl on nodes, given a vector field defined on central points  */
-void curlC2N(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, grid*);
+void curlC2N(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, Grid*);
 
 /** calculate curl on central points, given a vector field defined on nodes  */
-void curlN2C(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, grid*);
+void curlN2C(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, FPfield***, Grid*);
 
 /** calculate laplacian on nodes, given a scalar field defined on nodes */
-void lapN2N(FPfield***, FPfield***, grid*);
+void lapN2N(FPfield***, FPfield***, Grid*);
 
 /** calculate laplacian on central points, given a scalar field defined on central points */
-void lapC2C(FPfield***, FPfield***, grid*);
+void lapC2C(FPfield***, FPfield***, Grid*);
 
 
 #endif

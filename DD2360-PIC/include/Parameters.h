@@ -5,7 +5,7 @@
 #define NS_MAX 6
 
 /** Simulation Parameters */
-struct parameters {
+struct Parameters {
 
   /** light speed */
   double c;

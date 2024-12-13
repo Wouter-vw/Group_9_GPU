@@ -5,16 +5,16 @@
 #include "input_array.h"
 
 /** read the inputfile given via the command line */
-void readInputFile(struct parameters*, int, char**);
+void readInputFile(struct Parameters*, int, char**);
 
 /** Print Simulation Parameters */
-void printParameters(struct parameters*);
+void printParameters(struct Parameters*);
 
 /** Save Simulation Parameters */
-void saveParameters(struct parameters*);
+void saveParameters(struct Parameters*);
 
-void VTK_Write_Vectors(int, struct grid*, struct EMfield*);
+void VTK_Write_Vectors(int, struct Grid*, struct EMfield*);
 
-void VTK_Write_Scalars(int, struct grid*, struct interpDensSpecies*, struct interpDensNet*);
+void VTK_Write_Scalars(int, struct Grid*, struct interpDensSpecies*, struct interpDensNet*);
 
 #endif

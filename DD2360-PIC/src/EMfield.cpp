@@ -1,28 +1,25 @@
 #include "EMfield.h"
 
-/** allocate electric and magnetic field */
-void field_allocate(struct grid* grd, struct EMfield* field)
-{
-    // E on nodes
-    field->Ex  = newArr3<FPfield>(&field->Ex_flat, grd->nxn, grd->nyn, grd->nzn);
-    field->Ey  = newArr3<FPfield>(&field->Ey_flat, grd->nxn, grd->nyn, grd->nzn);
-    field->Ez  = newArr3<FPfield>(&field->Ez_flat, grd->nxn, grd->nyn, grd->nzn);
-    // B on nodes
-    field->Bxn = newArr3<FPfield>(&field->Bxn_flat, grd->nxn, grd->nyn, grd->nzn);
-    field->Byn = newArr3<FPfield>(&field->Byn_flat, grd->nxn, grd->nyn, grd->nzn);
-    field->Bzn = newArr3<FPfield>(&field->Bzn_flat, grd->nxn, grd->nyn, grd->nzn);
+void EMfield::allocate(Grid* grid) {
+  // E on nodes
+  Ex = newArr3<FPfield>(&Ex_flat, grid->nxn, grid->nyn, grid->nzn);
+  Ey = newArr3<FPfield>(&Ey_flat, grid->nxn, grid->nyn, grid->nzn);
+  Ez = newArr3<FPfield>(&Ez_flat, grid->nxn, grid->nyn, grid->nzn);
+  // B on nodes
+  Bxn = newArr3<FPfield>(&Bxn_flat, grid->nxn, grid->nyn, grid->nzn);
+  Byn = newArr3<FPfield>(&Byn_flat, grid->nxn, grid->nyn, grid->nzn);
+  Bzn = newArr3<FPfield>(&Bzn_flat, grid->nxn, grid->nyn, grid->nzn);
 }
 
 /** deallocate electric and magnetic field */
-void field_deallocate(struct grid* grd, struct EMfield* field)
-{
-    // E deallocate 3D arrays
-    delArr3(field->Ex, grd->nxn, grd->nyn);
-    delArr3(field->Ey, grd->nxn, grd->nyn);
-    delArr3(field->Ez, grd->nxn, grd->nyn);
+void EMfield::deallocate(Grid* grid) {
+  // E deallocate 3D arrays
+  delArr3(Ex, grid->nxn, grid->nyn);
+  delArr3(Ey, grid->nxn, grid->nyn);
+  delArr3(Ez, grid->nxn, grid->nyn);
 
-    // B deallocate 3D arrays
-    delArr3(field->Bxn, grd->nxn, grd->nyn);
-    delArr3(field->Byn, grd->nxn, grd->nyn);
-    delArr3(field->Bzn, grd->nxn, grd->nyn);
+  // B deallocate 3D arrays
+  delArr3(Bxn, grid->nxn, grid->nyn);
+  delArr3(Byn, grid->nxn, grid->nyn);
+  delArr3(Bzn, grid->nxn, grid->nyn);
 }

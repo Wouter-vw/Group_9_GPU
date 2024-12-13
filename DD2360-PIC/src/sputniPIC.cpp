@@ -15,12 +15,12 @@
 #include "InterpDensSpecies.h"
 
 // Field structure
-#include "EMfield.h"     // Just E and Bn
-#include "EMfield_aux.h" // Bc, Phi, Eth, D
+#include "EMfield.h"      // Just E and Bn
+#include "EMfield_aux.h"  // Bc, Phi, Eth, D
 
 // Particles structure
 #include "Particles.h"
-#include "Particles_aux.h" // Needed only if dointerpolation on GPU - avoid reduction on GPU
+#include "Particles_aux.h"  // Needed only if dointerpolation on GPU - avoid reduction on GPU
 
 // Initial Condition
 #include "IC.h"
@@ -32,9 +32,8 @@
 #include "RW_IO.h"
 
 int main(int argc, char **argv) {
-
   // Read the inputfile and fill the param structure
-  parameters param;
+  Parameters param;
   // Read the input file name from command line
   readInputFile(&param, argc, argv);
   printParameters(&param);
@@ -45,14 +44,14 @@ int main(int argc, char **argv) {
   double iMover, iInterp, eMover = 0.0, eInterp = 0.0;
 
   // Set-up the grid information
-  grid grd;
+  Grid grd;
   setGrid(&param, &grd);
 
   // Allocate Fields
   EMfield field;
-  field_allocate(&grd, &field);
+  field.allocate(&grd);
   EMfield_aux field_aux;
-  field_aux_allocate(&grd, &field_aux);
+  field_aux.allocate(&grd);
 
   // Allocate Interpolated Quantities
   // per species
@@ -78,7 +77,6 @@ int main(int argc, char **argv) {
   // **********************************************************//
   for (int cycle = param.first_cycle_n;
        cycle < (param.first_cycle_n + param.ncycles); cycle++) {
-
     std::cout << std::endl;
     std::cout << "***********************" << std::endl;
     std::cout << "   cycle = " << cycle << std::endl;
@@ -88,19 +86,17 @@ int main(int argc, char **argv) {
     setZeroDensities(&idn, ids, &grd, param.ns);
 
     // implicit mover
-    iMover = cpuSecond(); // start timer for mover
+    iMover = cpuSecond();  // start timer for mover
     for (int is = 0; is < param.ns; is++)
       mover_PC(&part[is], &field, &grd, &param);
-    eMover += (cpuSecond() - iMover); // stop timer for mover
+    eMover += (cpuSecond() - iMover);  // stop timer for mover
 
     // interpolation particle to grid
-    iInterp = cpuSecond(); // start timer for the interpolation step
+    iInterp = cpuSecond();  // start timer for the interpolation step
     // interpolate species
-    for (int is = 0; is < param.ns; is++)
-      interpP2G(&part[is], &ids[is], &grd);
+    for (int is = 0; is < param.ns; is++) interpP2G(&part[is], &ids[is], &grd);
     // apply BC to interpolated densities
-    for (int is = 0; is < param.ns; is++)
-      applyBCids(&ids[is], &grd, &param);
+    for (int is = 0; is < param.ns; is++) applyBCids(&ids[is], &grd, &param);
     // sum over species
     sumOverSpecies(&idn, ids, &grd, param.ns);
     // interpolate charge density from center to node
@@ -112,9 +108,9 @@ int main(int argc, char **argv) {
       VTK_Write_Scalars(cycle, &grd, ids, &idn);
     }
 
-    eInterp += (cpuSecond() - iInterp); // stop timer for interpolation
+    eInterp += (cpuSecond() - iInterp);  // stop timer for interpolation
 
-  } // end of one PIC cycle
+  }  // end of one PIC cycle
 
   /// Release the resources
   // deallocate field
