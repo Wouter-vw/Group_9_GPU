@@ -55,9 +55,6 @@ void Particle::update(ParticleSettings* part, Grid* grd, Parameters* param,
                       EMfield* field) {
   FPpart xptilde, yptilde, zptilde, uptilde, vptilde, wptilde;
   int ix, iy, iz;
-  xptilde = x;
-  yptilde = y;
-  zptilde = z;
 
   // auxiliary variables
   FPpart dt_sub_cycling = (FPpart)param->dt / ((double)part->nSubCycles);
@@ -74,125 +71,131 @@ void Particle::update(ParticleSettings* part, Grid* grd, Parameters* param,
   // intermediate particle position and velocity
 
   // calculate the average velocity iteratively
-  for (int innter = 0; innter < part->nIterMover; innter++) {
-    // interpolation G-->P
-    ix = 2 + int((x - grd->xStart) * grd->invdx);
-    iy = 2 + int((y - grd->yStart) * grd->invdy);
-    iz = 2 + int((z - grd->zStart) * grd->invdz);
+  for (int i_sub = 0; i_sub < part->nSubCycles; i_sub++) {
+    xptilde = x;
+    yptilde = y;
+    zptilde = z;
+    for (int innter = 0; innter < part->nIterMover; innter++) {
+      // interpolation G-->P
+      ix = 2 + int((x - grd->xStart) * grd->invdx);
+      iy = 2 + int((y - grd->yStart) * grd->invdy);
+      iz = 2 + int((z - grd->zStart) * grd->invdz);
 
-    // calculate weights
-    xi[0] = x - grd->XN[ix - 1][iy][iz];
-    eta[0] = y - grd->YN[ix][iy - 1][iz];
-    zeta[0] = z - grd->ZN[ix][iy][iz - 1];
-    xi[1] = grd->XN[ix][iy][iz] - x;
-    eta[1] = grd->YN[ix][iy][iz] - y;
-    zeta[1] = grd->ZN[ix][iy][iz] - z;
-    for (int ii = 0; ii < 2; ii++)
-      for (int jj = 0; jj < 2; jj++)
-        for (int kk = 0; kk < 2; kk++)
-          weight[ii][jj][kk] = xi[ii] * eta[jj] * zeta[kk] * grd->invVOL;
+      // calculate weights
+      xi[0] = x - grd->XN[ix - 1][iy][iz];
+      eta[0] = y - grd->YN[ix][iy - 1][iz];
+      zeta[0] = z - grd->ZN[ix][iy][iz - 1];
+      xi[1] = grd->XN[ix][iy][iz] - x;
+      eta[1] = grd->YN[ix][iy][iz] - y;
+      zeta[1] = grd->ZN[ix][iy][iz] - z;
+      for (int ii = 0; ii < 2; ii++)
+        for (int jj = 0; jj < 2; jj++)
+          for (int kk = 0; kk < 2; kk++)
+            weight[ii][jj][kk] = xi[ii] * eta[jj] * zeta[kk] * grd->invVOL;
 
-    // set to zero local electric and magnetic field
-    Exl = 0.0, Eyl = 0.0, Ezl = 0.0, Bxl = 0.0, Byl = 0.0, Bzl = 0.0;
+      // set to zero local electric and magnetic field
+      Exl = 0.0, Eyl = 0.0, Ezl = 0.0, Bxl = 0.0, Byl = 0.0, Bzl = 0.0;
 
-    for (int ii = 0; ii < 2; ii++)
-      for (int jj = 0; jj < 2; jj++)
-        for (int kk = 0; kk < 2; kk++) {
-          Exl += weight[ii][jj][kk] * field->Ex[ix - ii][iy - jj][iz - kk];
-          Eyl += weight[ii][jj][kk] * field->Ey[ix - ii][iy - jj][iz - kk];
-          Ezl += weight[ii][jj][kk] * field->Ez[ix - ii][iy - jj][iz - kk];
-          Bxl += weight[ii][jj][kk] * field->Bxn[ix - ii][iy - jj][iz - kk];
-          Byl += weight[ii][jj][kk] * field->Byn[ix - ii][iy - jj][iz - kk];
-          Bzl += weight[ii][jj][kk] * field->Bzn[ix - ii][iy - jj][iz - kk];
-        }
+      for (int ii = 0; ii < 2; ii++)
+        for (int jj = 0; jj < 2; jj++)
+          for (int kk = 0; kk < 2; kk++) {
+            Exl += weight[ii][jj][kk] * field->Ex[ix - ii][iy - jj][iz - kk];
+            Eyl += weight[ii][jj][kk] * field->Ey[ix - ii][iy - jj][iz - kk];
+            Ezl += weight[ii][jj][kk] * field->Ez[ix - ii][iy - jj][iz - kk];
+            Bxl += weight[ii][jj][kk] * field->Bxn[ix - ii][iy - jj][iz - kk];
+            Byl += weight[ii][jj][kk] * field->Byn[ix - ii][iy - jj][iz - kk];
+            Bzl += weight[ii][jj][kk] * field->Bzn[ix - ii][iy - jj][iz - kk];
+          }
 
-    // end interpolation
-    omdtsq = qomdt2 * qomdt2 * (Bxl * Bxl + Byl * Byl + Bzl * Bzl);
-    denom = 1.0 / (1.0 + omdtsq);
-    // solve the position equation
-    ut = u + qomdt2 * Exl;
-    vt = v + qomdt2 * Eyl;
-    wt = w + qomdt2 * Ezl;
-    udotb = ut * Bxl + vt * Byl + wt * Bzl;
-    // solve the velocity equation
-    uptilde =
-        (ut + qomdt2 * (vt * Bzl - wt * Byl + qomdt2 * udotb * Bxl)) * denom;
-    vptilde =
-        (vt + qomdt2 * (wt * Bxl - ut * Bzl + qomdt2 * udotb * Byl)) * denom;
-    wptilde =
-        (wt + qomdt2 * (ut * Byl - vt * Bxl + qomdt2 * udotb * Bzl)) * denom;
-    // update position
-    x = xptilde + uptilde * dto2;
-    y = yptilde + vptilde * dto2;
-    z = zptilde + wptilde * dto2;
+      // end interpolation
+      omdtsq = qomdt2 * qomdt2 * (Bxl * Bxl + Byl * Byl + Bzl * Bzl);
+      denom = 1.0 / (1.0 + omdtsq);
+      // solve the position equation
+      ut = u + qomdt2 * Exl;
+      vt = v + qomdt2 * Eyl;
+      wt = w + qomdt2 * Ezl;
+      udotb = ut * Bxl + vt * Byl + wt * Bzl;
+      // solve the velocity equation
+      uptilde =
+          (ut + qomdt2 * (vt * Bzl - wt * Byl + qomdt2 * udotb * Bxl)) * denom;
+      vptilde =
+          (vt + qomdt2 * (wt * Bxl - ut * Bzl + qomdt2 * udotb * Byl)) * denom;
+      wptilde =
+          (wt + qomdt2 * (ut * Byl - vt * Bxl + qomdt2 * udotb * Bzl)) * denom;
+      // update position
+      x = xptilde + uptilde * dto2;
+      y = yptilde + vptilde * dto2;
+      z = zptilde + wptilde * dto2;
 
-  }  // end of iteration
-  // update the final position and velocity
-  u = 2.0 * uptilde - u;
-  v = 2.0 * vptilde - v;
-  w = 2.0 * wptilde - w;
-  x = xptilde + uptilde * dt_sub_cycling;
-  y = yptilde + vptilde * dt_sub_cycling;
-  z = zptilde + wptilde * dt_sub_cycling;
+    }  // end of iteration
 
-  //////////
-  //////////
-  ////////// BC
+    // update the final position and velocity
+    u = 2.0 * uptilde - u;
+    v = 2.0 * vptilde - v;
+    w = 2.0 * wptilde - w;
+    x = xptilde + uptilde * dt_sub_cycling;
+    y = yptilde + vptilde * dt_sub_cycling;
+    z = zptilde + wptilde * dt_sub_cycling;
 
-  // X-DIRECTION: BC particles
-  if (x > grd->Lx) {
-    if (param->PERIODICX == true) {  // PERIODIC
-      x = x - grd->Lx;
-    } else {  // REFLECTING BC
-      u = -u;
-      x = 2 * grd->Lx - x;
+    //////////
+    //////////
+    ////////// BC
+
+    // X-DIRECTION: BC particles
+    if (x > grd->Lx) {
+      if (param->PERIODICX == true) {  // PERIODIC
+        x = x - grd->Lx;
+      } else {  // REFLECTING BC
+        u = -u;
+        x = 2 * grd->Lx - x;
+      }
     }
-  }
 
-  if (x < 0) {
-    if (param->PERIODICX == true) {  // PERIODIC
-      x = x + grd->Lx;
-    } else {  // REFLECTING BC
-      u = -u;
-      x = -x;
+    if (x < 0) {
+      if (param->PERIODICX == true) {  // PERIODIC
+        x = x + grd->Lx;
+      } else {  // REFLECTING BC
+        u = -u;
+        x = -x;
+      }
     }
-  }
 
-  // Y-DIRECTION: BC particles
-  if (y > grd->Ly) {
-    if (param->PERIODICY == true) {  // PERIODIC
-      y = y - grd->Ly;
-    } else {  // REFLECTING BC
-      v = -v;
-      y = 2 * grd->Ly - y;
+    // Y-DIRECTION: BC particles
+    if (y > grd->Ly) {
+      if (param->PERIODICY == true) {  // PERIODIC
+        y = y - grd->Ly;
+      } else {  // REFLECTING BC
+        v = -v;
+        y = 2 * grd->Ly - y;
+      }
     }
-  }
 
-  if (y < 0) {
-    if (param->PERIODICY == true) {  // PERIODIC
-      y = y + grd->Ly;
-    } else {  // REFLECTING BC
-      v = -v;
-      y = -y;
+    if (y < 0) {
+      if (param->PERIODICY == true) {  // PERIODIC
+        y = y + grd->Ly;
+      } else {  // REFLECTING BC
+        v = -v;
+        y = -y;
+      }
     }
-  }
 
-  // Z-DIRECTION: BC particles
-  if (z > grd->Lz) {
-    if (param->PERIODICZ == true) {  // PERIODIC
-      z = z - grd->Lz;
-    } else {  // REFLECTING BC
-      w = -w;
-      z = 2 * grd->Lz - z;
+    // Z-DIRECTION: BC particles
+    if (z > grd->Lz) {
+      if (param->PERIODICZ == true) {  // PERIODIC
+        z = z - grd->Lz;
+      } else {  // REFLECTING BC
+        w = -w;
+        z = 2 * grd->Lz - z;
+      }
     }
-  }
 
-  if (z < 0) {
-    if (param->PERIODICZ == true) {  // PERIODIC
-      z = z + grd->Lz;
-    } else {  // REFLECTING BC
-      w = -w;
-      z = -z;
+    if (z < 0) {
+      if (param->PERIODICZ == true) {  // PERIODIC
+        z = z + grd->Lz;
+      } else {  // REFLECTING BC
+        w = -w;
+        z = -z;
+      }
     }
   }
 }
@@ -204,21 +207,15 @@ int mover_PC(struct Particles* part, struct EMfield* field, struct Grid* grd,
   std::cout << "***  MOVER with SUBCYCLYING " << param->n_sub_cycles
             << " - species " << part->species_ID << " ***" << std::endl;
 
-  std::cout << "N sub cycles: " << part->n_sub_cycles << std::endl;
-  std::cout << "N OP: " << part->nop << std::endl;
-  std::cout << "N iter mover: " << part->NiterMover << std::endl;
   // start subcycling
 
   ParticleSettings* settings = new ParticleSettings(
       part->qom, part->NiterMover, part->nop, part->n_sub_cycles);
-  for (int i_sub = 0; i_sub < part->n_sub_cycles; i_sub++) {
-    // move each particle with new fields
-    for (int i = 0; i < part->nop; i++) {
-      part->particles[i].update(settings, grd, param, field);
-    }  // end of subcycling
+  // move each particle with new fields
+  for (int i = 0; i < part->nop; i++) {
+    part->particles[i].update(settings, grd, param, field);
   }  // end of one particle
 
-  std::cout << "delete settings\n";
   delete settings;
   return (0);  // exit succcesfully
 }  // end of the mover

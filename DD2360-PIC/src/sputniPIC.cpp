@@ -115,12 +115,9 @@ int main(int argc, char **argv) {
 
   /// Release the resources
   // deallocate field
-  std::cout << "deallocate grid\n";
   grid_deallocate(&grd);
-  std::cout << "deallocate field\n";
   field.deallocate(&grd);
   // interp
-  std::cout << "deallocate dense\n";
   interp_dens_net_deallocate(&grd, &idn);
 
   // Deallocate interpolated densities and particles
