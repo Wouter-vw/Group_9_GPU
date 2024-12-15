@@ -1,6 +1,7 @@
 #ifndef IC_H
 #define IC_H
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 /** initialize for magnetic reconnection probelm with Harris current sheet */

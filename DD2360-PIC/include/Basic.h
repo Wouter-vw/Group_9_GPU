@@ -1,6 +1,7 @@
 #ifndef Basic_H
 #define Basic_H
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "PrecisionTypes.h"

@@ -1,19 +1,29 @@
 # Minimum CMake version
 cmake_minimum_required(VERSION 3.10)
 
-# Project name and language
-project(sputniPIC CXX)
+# Project name and languages
+project(sputniPIC LANGUAGES CXX CUDA)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Debug has less optimizations for profiling
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+# Visual studio has different flag notation
+if(MSVC)
+    # Debug has less optimizations for profiling
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /O0")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /O0")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
+else()
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+endif()
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -O0")
+set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
 
 if(APPLE)
     # Check for GCC
@@ -34,15 +44,13 @@ file(GLOB_RECURSE SOURCES
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# Define CUDA-related macros as empty to avoid compilation errors
-# TODO: Remove after adding CUDA
-add_definitions(
-        -D__host__=""
-        -D__device__=""
-)
-
 # Create executable
 add_executable(sputniPIC ${SOURCES})
+
+# Set properties for CUDA
+set_target_properties(sputniPIC PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+)
 
 add_custom_target(test2D
         COMMAND sputniPIC "${CMAKE_SOURCE_DIR}/inputfiles/GEM_2D.inp"
