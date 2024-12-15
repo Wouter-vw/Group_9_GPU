@@ -4,7 +4,7 @@
 #include "Grid.h"
 
 /** structure with field information */
-struct EMfield {
+struct __host__ __device__ EMfield {
   // field arrays: 4D arrays
 
   /* Electric field defined on nodes: last index is component */

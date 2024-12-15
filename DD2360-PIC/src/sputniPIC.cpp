@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
     // implicit mover
     iMover = cpuSecond();  // start timer for mover
     for (int is = 0; is < param.ns; is++)
-      mover_PC(&part[is], &field, &grd, &param);
+      mover_PC_GPU(&part[is], &field, &grd, &param);
     eMover += (cpuSecond() - iMover);  // stop timer for mover
 
     // interpolation particle to grid

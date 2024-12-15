@@ -11,16 +11,16 @@
 #include "Parameters.h"
 #include "PrecisionTypes.h"
 
-struct ParticleSettings {
+struct __host__ __device__ ParticleSettings {
   int qom, nIterMover, nop, nSubCycles;
-  ParticleSettings(int qom, int nIterMover, int nop, int nSubCycles)
+  __host__ __device__ ParticleSettings(int qom, int nIterMover, int nop, int nSubCycles)
       : qom(qom), nIterMover(nIterMover), nop(nop), nSubCycles(nSubCycles) {}
 };
-class Particle {
+struct Particle {
 public: 
   FPpart x, y, z, u, v, w;
   FPinterp q;
-  void update(ParticleSettings*, Grid*, Parameters*, EMfield*);
+  void __host__ __device__ update(ParticleSettings*, Grid*, Parameters*, EMfield*);
 };
 
 struct Particles {
@@ -74,7 +74,8 @@ void particle_deallocate(struct Particles*);
 /** particle mover */
 int mover_PC(struct Particles*, struct EMfield*, struct Grid*,
              struct Parameters*);
-
+int mover_PC_GPU(Particles* part, EMfield* field, Grid* grd,
+             Parameters* param);
 /** Interpolation Particle --> Grid: This is for species */
 void interpP2G(struct Particles*, struct interpDensSpecies*, struct Grid*);
 

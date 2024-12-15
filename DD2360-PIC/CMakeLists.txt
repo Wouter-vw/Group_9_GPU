@@ -1,45 +1,37 @@
-# Minimum CMake version
 cmake_minimum_required(VERSION 3.10)
-
-# Project name and languages
 project(sputniPIC LANGUAGES CXX CUDA)
 
-# Set C++ standard
+# Set C++ standard for both CUDA and CXX
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-# Visual studio has different flag notation
+# Visual studio optimization flags
 if(MSVC)
-    # Debug has less optimizations for profiling
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /O0")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /O0")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
 else()
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 endif()
 
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -O0")
 set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
 
+# Set CUDA architectures
+set(CMAKE_CUDA_ARCHITECTURES 75)
+
 if(APPLE)
-    # Check for GCC
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
-        # Check for Clang
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
     endif()
 endif()
 
-# Find all source files including .cu files
-file(GLOB_RECURSE SOURCES
-        "src/*.cu"
-        "src/*.cpp"
-)
+# Find source files
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.cu")
 
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
@@ -47,19 +39,14 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Create executable
 add_executable(sputniPIC ${SOURCES})
 
-# Set properties for CUDA
+# Set all source files to be compiled with CUDA
+set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CUDA)
+
+# Set CUDA properties
 set_target_properties(sputniPIC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
+        POSITION_INDEPENDENT_CODE ON
 )
 
-add_custom_target(test2D
-        COMMAND sputniPIC "${CMAKE_SOURCE_DIR}/inputfiles/GEM_2D.inp"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        DEPENDS sputniPIC
-)
-
-add_custom_target(test3D
-        COMMAND sputniPIC "${CMAKE_SOURCE_DIR}/inputfiles/GEM_3D.inp"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        DEPENDS sputniPIC
-)
+# Optional: Add CUDA specific compile flags if needed
+target_compile_options(sputniPIC PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Wall>)
