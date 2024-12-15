@@ -31,117 +31,173 @@
 // Read and output operations
 #include "RW_IO.h"
 
-int main(int argc, char **argv) {
+struct SimulationResult {
+    FPpart *x, *y, *z;
+    int size;
+    double elaps;
 
-  // Read the inputfile and fill the param structure
-  parameters param;
-  // Read the input file name from command line
-  readInputFile(&param, argc, argv);
-  printParameters(&param);
-  saveParameters(&param);
+    ~SimulationResult() {
+        delete[] x;
+        delete[] y;
+        delete[] z;
+    }
+};
 
-  // Timing variables
-  double iStart = cpuSecond();
-  double iMover, iInterp, eMover = 0.0, eInterp = 0.0;
+SimulationResult runSimulation(parameters &param, bool useGPU) {
+    // Timing variables
+    double iStart = cpuSecond();
 
-  // Set-up the grid information
-  grid grd;
-  setGrid(&param, &grd);
+    double iMover, iInterp, eMover = 0.0, eInterp = 0.0;
+    grid grd;
+    setGrid(&param, &grd);
 
-  // Allocate Fields
-  EMfield field;
-  field_allocate(&grd, &field);
-  EMfield_aux field_aux;
-  field_aux_allocate(&grd, &field_aux);
+    // Allocate Fields
+    EMfield field;
+    field_allocate(&grd, &field);
+    EMfield_aux field_aux;
+    field_aux_allocate(&grd, &field_aux);
 
-  // Allocate Interpolated Quantities
-  // per species
-  interpDensSpecies *ids = new interpDensSpecies[param.ns];
-  for (int is = 0; is < param.ns; is++)
-    interp_dens_species_allocate(&grd, &ids[is], is);
-  // Net densities
-  interpDensNet idn;
-  interp_dens_net_allocate(&grd, &idn);
-
-  // Allocate Particles
-  particles *part = new particles[param.ns];
-  // allocation
-  for (int is = 0; is < param.ns; is++) {
-    particle_allocate(&param, &part[is], is);
-  }
-
-  // Initialization
-  initGEM(&param, &grd, &field, &field_aux, part, ids);
-
-  // **********************************************************//
-  // **** Start the Simulation!  Cycle index start from 1  *** //
-  // **********************************************************//
-  for (int cycle = param.first_cycle_n;
-       cycle < (param.first_cycle_n + param.ncycles); cycle++) {
-
-    std::cout << std::endl;
-    std::cout << "***********************" << std::endl;
-    std::cout << "   cycle = " << cycle << std::endl;
-    std::cout << "***********************" << std::endl;
-
-    // set to zero the densities - needed for interpolation
-    setZeroDensities(&idn, ids, &grd, param.ns);
-
-    // implicit mover
-    iMover = cpuSecond(); // start timer for mover
+    // Allocate Interpolated Quantities
+    // per species
+    interpDensSpecies *ids = new interpDensSpecies[param.ns];
     for (int is = 0; is < param.ns; is++)
-      mover_PC(&part[is], &field, &grd, &param);
-    eMover += (cpuSecond() - iMover); // stop timer for mover
+        interp_dens_species_allocate(&grd, &ids[is], is);
+    // Net densities
+    interpDensNet idn;
+    interp_dens_net_allocate(&grd, &idn);
 
-    // interpolation particle to grid
-    iInterp = cpuSecond(); // start timer for the interpolation step
-    // interpolate species
-    for (int is = 0; is < param.ns; is++)
-      interpP2G(&part[is], &ids[is], &grd);
-    // apply BC to interpolated densities
-    for (int is = 0; is < param.ns; is++)
-      applyBCids(&ids[is], &grd, &param);
-    // sum over species
-    sumOverSpecies(&idn, ids, &grd, param.ns);
-    // interpolate charge density from center to node
-    applyBCscalarDensN(idn.rhon, &grd, &param);
-
-    // write E, B, rho to disk
-    if (cycle % param.FieldOutputCycle == 0) {
-      VTK_Write_Vectors(cycle, &grd, &field);
-      VTK_Write_Scalars(cycle, &grd, ids, &idn);
+    // Allocate Particles
+    particles *part = new particles[param.ns];
+    // allocation
+    for (int is = 0; is < param.ns; is++) {
+        particle_allocate(&param, &part[is], is);
     }
 
-    eInterp += (cpuSecond() - iInterp); // stop timer for interpolation
+    // Initialization
+    initGEM(&param, &grd, &field, &field_aux, part, ids);
 
-  } // end of one PIC cycle
+    // **********************************************************//
+    // **** Start the Simulation!  Cycle index start from 1  *** //
+    // **********************************************************//
+    for (int cycle = param.first_cycle_n;
+         cycle < (param.first_cycle_n + param.ncycles); cycle++) {
+        std::cout << std::endl;
+        std::cout << "***********************" << std::endl;
+        std::cout << "   cycle = " << cycle << std::endl;
+        std::cout << "***********************" << std::endl;
 
-  /// Release the resources
-  // deallocate field
-  grid_deallocate(&grd);
-  field_deallocate(&grd, &field);
-  // interp
-  interp_dens_net_deallocate(&grd, &idn);
+        // set to zero the densities - needed for interpolation
+        setZeroDensities(&idn, ids, &grd, param.ns);
 
-  // Deallocate interpolated densities and particles
-  for (int is = 0; is < param.ns; is++) {
-    interp_dens_species_deallocate(&grd, &ids[is]);
-    particle_deallocate(&part[is]);
-  }
+        // implicit mover
+        iMover = cpuSecond(); // start timer for mover
+        if (useGPU) {
+            for (int is = 0; is < param.ns; is++)
+                mover_PC_GPU(&part[is], &field, &grd, &param);
+        } else {
+            for (int is = 0; is < param.ns; is++)
+                mover_PC(&part[is], &field, &grd, &param);
+        }
 
-  // stop timer
-  double iElaps = cpuSecond() - iStart;
 
-  // Print timing of simulation
-  std::cout << std::endl;
-  std::cout << "**************************************" << std::endl;
-  std::cout << "   Tot. Simulation Time (s) = " << iElaps << std::endl;
-  std::cout << "   Mover Time / Cycle   (s) = " << eMover / param.ncycles
+        eMover += (cpuSecond() - iMover); // stop timer for mover
+
+        // interpolation particle to grid
+        iInterp = cpuSecond(); // start timer for the interpolation step
+        // interpolate species
+        for (int is = 0; is < param.ns; is++)
+            interpP2G(&part[is], &ids[is], &grd);
+        // apply BC to interpolated densities
+        for (int is = 0; is < param.ns; is++)
+            applyBCids(&ids[is], &grd, &param);
+        // sum over species
+        sumOverSpecies(&idn, ids, &grd, param.ns);
+        // interpolate charge density from center to node
+        applyBCscalarDensN(idn.rhon, &grd, &param);
+
+        // write E, B, rho to disk
+        if (cycle % param.FieldOutputCycle == 0) {
+            VTK_Write_Vectors(cycle, &grd, &field);
+            VTK_Write_Scalars(cycle, &grd, ids, &idn);
+        }
+
+        eInterp += (cpuSecond() - iInterp); // stop timer for interpolation
+    } // end of one PIC cycle
+
+
+    FPpart *x = new FPpart[part->nop];
+    FPpart *y = new FPpart[part->nop];
+    FPpart *z = new FPpart[part->nop];
+    for (int i = 0; i < part->nop; i++) {
+        x[i] = part->x[i];
+        y[i] = part->y[i];
+        z[i] = part->z[i];
+    }
+    SimulationResult res;
+    res.x = x;
+    res.y = y;
+    res.z = z;
+    res.size = part->nop;
+
+    /// Release the resources
+    // deallocate field
+    grid_deallocate(&grd);
+    field_deallocate(&grd, &field);
+    // interp
+    interp_dens_net_deallocate(&grd, &idn);
+
+    // Deallocate interpolated densities and particles
+    for (int is = 0; is < param.ns; is++) {
+        interp_dens_species_deallocate(&grd, &ids[is]);
+        particle_deallocate(&part[is]);
+    }
+    double iElaps = cpuSecond() - iStart;
+
+    std::cout << std::endl;
+    std::cout << "**************************************" << std::endl;
+    std::cout << "   Tot. Simulation Time (s) = " << iElaps << std::endl;
+    std::cout << "   Mover Time / Cycle   (s) = " << eMover / param.ncycles
             << std::endl;
-  std::cout << "   Interp. Time / Cycle (s) = " << eInterp / param.ncycles
+    std::cout << "   Interp. Time / Cycle (s) = " << eInterp / param.ncycles
             << std::endl;
-  std::cout << "**************************************" << std::endl;
+    std::cout << "**************************************" << std::endl;
 
-  // exit
-  return 0;
+    res.elaps = iElaps;
+    return res;
+}
+
+
+int main(int argc, char **argv) {
+    // Read the inputfile and fill the param structure
+    parameters param;
+    // Read the input file name from command line
+    readInputFile(&param, argc, argv);
+    printParameters(&param);
+    saveParameters(&param);
+
+    // Set-up the grid information
+    std::cout << "running CPU simulation" << std::endl;
+    auto cpuResults = runSimulation(param, false);
+    std::cout << "running GPU simulation" << std::endl;
+    auto gpuResults = runSimulation(param, true);
+
+    double maxDelta = 0.0, meanDelta = 0.0;
+    for (int i = 0; i < gpuResults.size; i++) {
+        auto gpuX = gpuResults.x[i];
+        auto gpuY = gpuResults.y[i];
+        auto gpuZ = gpuResults.z[i];
+        auto cpuX = cpuResults.x[i];
+        auto cpuY = cpuResults.y[i];
+        auto cpuZ = cpuResults.z[i];
+
+        auto deltaX = abs(gpuX - cpuX) / abs(max(gpuX, cpuX));
+        auto deltaY = abs(gpuY - cpuY) / abs(max(gpuY, cpuY));
+        auto deltaZ = abs(gpuZ - cpuZ) / abs(max(gpuZ, cpuZ));
+        double delta = max(deltaX, max(deltaY, deltaZ));
+        meanDelta += delta;
+        maxDelta = max(delta, maxDelta);
+    }
+    meanDelta /= gpuResults.size;
+
+    std::cout << "Max delta: " << maxDelta << ", Mean delta: " << meanDelta << std::endl;
 }
