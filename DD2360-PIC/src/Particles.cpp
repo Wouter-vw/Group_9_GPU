@@ -201,8 +201,8 @@ void Particle::update(ParticleSettings* part, Grid* grd, Parameters* param,
 }
 
 /** particle mover */
-int mover_PC(struct Particles* part, struct EMfield* field, struct Grid* grd,
-             struct Parameters* param) {
+int mover_PC(Particles* part, EMfield* field, Grid* grd,
+             Parameters* param) {
   // print species and subcycling
   std::cout << "***  MOVER with SUBCYCLYING " << param->n_sub_cycles
             << " - species " << part->species_ID << " ***" << std::endl;
