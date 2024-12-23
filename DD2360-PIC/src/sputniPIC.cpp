@@ -30,6 +30,7 @@
 #include "Timing.h"
 // Read and output operations
 #include "RW_IO.h"
+#include <fstream>
 
 struct SimulationResult {
     FPpart *x, *y, *z;
@@ -182,6 +183,10 @@ int main(int argc, char **argv) {
     auto gpuResults = runSimulation(param, true);
 
     double maxDelta = 0.0, meanDelta = 0.0;
+
+    // Open a file to write delta values
+    std::ofstream deltaFile("delta_values.txt");
+
     for (int i = 0; i < gpuResults.size; i++) {
         auto gpuX = gpuResults.x[i];
         auto gpuY = gpuResults.y[i];
@@ -196,8 +201,13 @@ int main(int argc, char **argv) {
         double delta = max(deltaX, max(deltaY, deltaZ));
         meanDelta += delta;
         maxDelta = max(delta, maxDelta);
+
+        // Write the delta value to the file
+        deltaFile << delta << std::endl;
     }
     meanDelta /= gpuResults.size;
 
+    // Close the file
+    deltaFile.close();
     std::cout << "Max delta: " << maxDelta << ", Mean delta: " << meanDelta << std::endl;
 }
