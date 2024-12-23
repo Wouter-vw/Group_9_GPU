@@ -1,5 +1,4 @@
-/** A mixed-precision implicit Particle-in-Cell simulator for heterogeneous
- * systems **/
+/** A mixed-precision implicit Particle-in-Cell simulator for heterogeneous systems **/
 
 // Allocator for 2D, 3D and 4D array: chain of pointers
 #include "Alloc.h"
@@ -11,11 +10,11 @@
 // Grid structure
 #include "Grid.h"
 // Interpolated Quantities Structures
-#include "InterpDensNet.h"
 #include "InterpDensSpecies.h"
+#include "InterpDensNet.h"
 
 // Field structure
-#include "EMfield.h"     // Just E and Bn
+#include "EMfield.h" // Just E and Bn
 #include "EMfield_aux.h" // Bc, Phi, Eth, D
 
 // Particles structure
