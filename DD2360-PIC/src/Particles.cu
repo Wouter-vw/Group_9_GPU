@@ -255,17 +255,12 @@ int mover_PC(struct particles* part, struct EMfield* field, struct grid* grd,
   return (0);  // exit succcesfully
 }  // end of the mover
 
-__global__ void mover_PC_kernel(
-    FPpart* d_x, FPpart* d_y, FPpart* d_z, FPpart* d_u, FPpart* d_v,
-    FPpart* d_w, FPpart* d_XN_flat, FPpart* d_YN_flat, FPpart* d_ZN_flat,
-    FPfield* d_Ex_flat, FPfield* d_Ey_flat, FPfield* d_Ez_flat,
-    FPfield* d_Bxn_flat, FPfield* d_Byn_flat, FPfield* d_Bzn_flat,
-    FPpart d_invVOL, FPpart d_xStart, FPpart d_yStart, FPpart d_zStart,
-    FPpart d_invdx, FPpart d_invdy, FPpart d_invdz, FPpart d_Lx, FPpart d_Ly,
-    FPpart d_Lz, FPpart dt_sub_cycling, FPpart dto2, FPpart qomdt2,
-    bool d_PERIODICX, bool d_PERIODICY, bool d_PERIODICZ, int d_nxn, int d_nyn,
-    int d_nzn, int d_nop, int d_NiterMover) {
+__global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
+                                struct grid* grd, struct parameters* param) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
+
+  FPpart dt_sub_cycling = (FPpart)param->dt / ((double)part->n_sub_cycles);
+  FPpart dto2 = .5 * dt_sub_cycling, qomdt2 = part->qom * dto2 / param->c;
 
   FPpart omdtsq, denom, ut, vt, wt, udotb;
 
@@ -280,31 +275,39 @@ __global__ void mover_PC_kernel(
   // intermediate particle position and velocity
   FPpart xptilde, yptilde, zptilde, uptilde, vptilde, wptilde;
 
-  if (i < d_nop) {
-    xptilde = d_x[i];
-    yptilde = d_y[i];
-    zptilde = d_z[i];
+  if (i < part->nop) {
+    xptilde = part->x[i];
+    yptilde = part->y[i];
+    zptilde = part->z[i];
 
-    for (int inner = 0; inner < d_NiterMover; inner++) {
+    for (int inner = 0; inner < part->NiterMover; inner++) {
       // Interpolation G-->P
-      ix = 2 + int((d_x[i] - d_xStart) * d_invdx);
-      iy = 2 + int((d_y[i] - d_yStart) * d_invdy);
-      iz = 2 + int((d_z[i] - d_zStart) * d_invdz);
+      ix = 2 + int((part->x[i] - grd->xStart) * grd->invdx);
+      iy = 2 + int((part->y[i] - grd->yStart) * grd->invdy);
+      iz = 2 + int((part->z[i] - grd->zStart) * grd->invdz);
 
       // Check indixing
       xi[0] =
-          d_x[i] - d_XN_flat[(ix - 1) * (d_nyn * d_nzn) + (iy)*d_nzn + (iz)];
-      eta[0] = d_y[i] - d_YN_flat[ix * d_nyn * d_nzn + (iy - 1) * d_nzn + (iz)];
-      zeta[0] = d_z[i] - d_ZN_flat[ix * d_nyn * d_nzn + (iy)*d_nzn + (iz - 1)];
+          part->x[i] -
+          grd->XN_flat[(ix - 1) * (grd->nyn * grd->nzn) + (iy)*grd->nzn + (iz)];
+      eta[0] =
+          part->y[i] -
+          grd->YN_flat[ix * grd->nyn * grd->nzn + (iy - 1) * grd->nzn + (iz)];
+      zeta[0] =
+          part->z[i] -
+          grd->ZN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz - 1)];
 
-      xi[1] = d_XN_flat[ix * d_nyn * d_nzn + (iy)*d_nzn + (iz)] - d_x[i];
-      eta[1] = d_YN_flat[ix * d_nyn * d_nzn + (iy)*d_nzn + (iz)] - d_y[i];
-      zeta[1] = d_ZN_flat[ix * d_nyn * d_nzn + (iy)*d_nzn + (iz)] - d_z[i];
+      xi[1] = grd->XN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)] -
+              part->x[i];
+      eta[1] = grd->YN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)] -
+               part->y[i];
+      zeta[1] = grd->ZN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)] -
+                part->z[i];
 
       for (int ii = 0; ii < 2; ii++) {
         for (int jj = 0; jj < 2; jj++) {
           for (int kk = 0; kk < 2; kk++) {
-            weight[ii][jj][kk] = xi[ii] * eta[jj] * zeta[kk] * d_invVOL;
+            weight[ii][jj][kk] = xi[ii] * eta[jj] * zeta[kk] * grd->invVOL;
           }
         }
       }
@@ -315,13 +318,14 @@ __global__ void mover_PC_kernel(
         for (int jj = 0; jj < 2; jj++) {
           for (int kk = 0; kk < 2; kk++) {
             // Check idx index
-            int idx = (ix - ii) * d_nyn * d_nzn + (iy - jj) * d_nzn + (iz - kk);
-            Exl += weight[ii][jj][kk] * d_Ex_flat[idx];
-            Eyl += weight[ii][jj][kk] * d_Ey_flat[idx];
-            Ezl += weight[ii][jj][kk] * d_Ez_flat[idx];
-            Bxl += weight[ii][jj][kk] * d_Bxn_flat[idx];
-            Byl += weight[ii][jj][kk] * d_Byn_flat[idx];
-            Bzl += weight[ii][jj][kk] * d_Bzn_flat[idx];
+            int idx = (ix - ii) * grd->nyn * grd->nzn + (iy - jj) * grd->nzn +
+                      (iz - kk);
+            Exl += weight[ii][jj][kk] * field->Ex_flat[idx];
+            Eyl += weight[ii][jj][kk] * field->Ey_flat[idx];
+            Ezl += weight[ii][jj][kk] * field->Ez_flat[idx];
+            Bxl += weight[ii][jj][kk] * field->Bxn_flat[idx];
+            Byl += weight[ii][jj][kk] * field->Byn_flat[idx];
+            Bzl += weight[ii][jj][kk] * field->Bzn_flat[idx];
           }
         }
       }
@@ -330,9 +334,9 @@ __global__ void mover_PC_kernel(
       omdtsq = qomdt2 * qomdt2 * (Bxl * Bxl + Byl * Byl + Bzl * Bzl);
       denom = 1.0 / (1.0 + omdtsq);
 
-      ut = d_u[i] + qomdt2 * Exl;
-      vt = d_v[i] + qomdt2 * Eyl;
-      wt = d_w[i] + qomdt2 * Ezl;
+      ut = part->u[i] + qomdt2 * Exl;
+      vt = part->v[i] + qomdt2 * Eyl;
+      wt = part->w[i] + qomdt2 * Ezl;
       udotb = ut * Bxl + vt * Byl + wt * Bzl;
 
       uptilde =
@@ -342,67 +346,67 @@ __global__ void mover_PC_kernel(
       wptilde =
           (wt + qomdt2 * (ut * Byl - vt * Bxl + qomdt2 * udotb * Bzl)) * denom;
 
-      d_x[i] = xptilde + uptilde * dto2;
-      d_y[i] = yptilde + vptilde * dto2;
-      d_z[i] = zptilde + wptilde * dto2;
+      part->x[i] = xptilde + uptilde * dto2;
+      part->y[i] = yptilde + vptilde * dto2;
+      part->z[i] = zptilde + wptilde * dto2;
     }
 
     // Update the final position and velocity
-    d_u[i] = 2.0 * uptilde - d_u[i];
-    d_v[i] = 2.0 * vptilde - d_v[i];
-    d_w[i] = 2.0 * wptilde - d_w[i];
+    part->u[i] = 2.0 * uptilde - part->u[i];
+    part->v[i] = 2.0 * vptilde - part->v[i];
+    part->w[i] = 2.0 * wptilde - part->w[i];
     // update position
-    d_x[i] = xptilde + uptilde * dt_sub_cycling;
-    d_y[i] = yptilde + vptilde * dt_sub_cycling;
-    d_z[i] = zptilde + wptilde * dt_sub_cycling;
+    part->x[i] = xptilde + uptilde * dt_sub_cycling;
+    part->y[i] = yptilde + vptilde * dt_sub_cycling;
+    part->z[i] = zptilde + wptilde * dt_sub_cycling;
 
     // Boundary conditions
-    if (d_x[i] > d_Lx) {
-      if (d_PERIODICX) {
-        d_x[i] -= d_Lx;
+    if (part->x[i] > grd->Lx) {
+      if (grd->PERIODICX) {
+        part->x[i] -= grd->Lx;
       } else {
-        d_u[i] = -d_u[i];
-        d_x[i] = 2 * d_Lx - d_x[i];
+        part->u[i] = -part->u[i];
+        part->x[i] = 2 * grd->Lx - part->x[i];
       }
     }
-    if (d_x[i] < 0) {
-      if (d_PERIODICX) {
-        d_x[i] += d_Lx;
+    if (part->x[i] < 0) {
+      if (grd->PERIODICX) {
+        part->x[i] += grd->Lx;
       } else {
-        d_u[i] = -d_u[i];
-        d_x[i] = -d_x[i];
+        part->u[i] = -part->u[i];
+        part->x[i] = -part->x[i];
       }
     }
-    if (d_y[i] > d_Ly) {
-      if (d_PERIODICY) {
-        d_y[i] -= d_Ly;
+    if (part->y[i] > grd->Ly) {
+      if (grd->PERIODICY) {
+        part->y[i] -= grd->Ly;
       } else {
-        d_v[i] = -d_v[i];
-        d_y[i] = 2 * d_Ly - d_y[i];
+        part->v[i] = -part->v[i];
+        part->y[i] = 2 * grd->Ly - part->y[i];
       }
     }
-    if (d_y[i] < 0) {
-      if (d_PERIODICY) {
-        d_y[i] += d_Ly;
+    if (part->y[i] < 0) {
+      if (grd->PERIODICY) {
+        part->y[i] += grd->Ly;
       } else {
-        d_v[i] = -d_v[i];
-        d_y[i] = -d_y[i];
+        part->v[i] = -part->v[i];
+        part->y[i] = -part->y[i];
       }
     }
-    if (d_z[i] > d_Lz) {
-      if (d_PERIODICZ) {
-        d_z[i] -= d_Lz;
+    if (part->z[i] > grd->Lz) {
+      if (grd->PERIODICZ) {
+        part->z[i] -= grd->Lz;
       } else {
-        d_w[i] = -d_w[i];
-        d_z[i] = 2 * d_Lz - d_z[i];
+        part->w[i] = -part->w[i];
+        part->z[i] = 2 * grd->Lz - part->z[i];
       }
     }
-    if (d_z[i] < 0) {
-      if (d_PERIODICZ) {
-        d_z[i] += d_Lz;
+    if (part->z[i] < 0) {
+      if (grd->PERIODICZ) {
+        part->z[i] += grd->Lz;
       } else {
-        d_w[i] = -d_w[i];
-        d_z[i] = -d_z[i];
+        part->w[i] = -part->w[i];
+        part->z[i] = -part->z[i];
       }
     }
   }
@@ -410,34 +414,39 @@ __global__ void mover_PC_kernel(
 
 int mover_PC_GPU(struct particles* part, struct EMfield* field,
                  struct grid* grd, struct parameters* param) {
-  // print species and subcycling
-  // std::cout << "***  MOVER with SUBCYCLYING "<< param->n_sub_cycles << " -
-  // species " << part->species_ID << " ***" << std::endl;
-
-  // auxiliary variables
-  FPpart dt_sub_cycling = (FPpart)param->dt / ((double)part->n_sub_cycles);
-  FPpart dto2 = .5 * dt_sub_cycling, qomdt2 = part->qom * dto2 / param->c;
-
-  // corresponds to XN, YN etc. also Ex, Bxn COPY for slimpicity
+  // Size calculations
   int nxn = grd->nxn;
   int nyn = grd->nyn;
   int nzn = grd->nzn;
   int nop = part->nop;
 
-  // Device pointers -> Free at the end
+  // 1. Allocate memory for structs on device
+  particles* d_part;
+  EMfield* d_field;
+  grid* d_grd;
+  parameters* d_param;
+
+  cudaMalloc(&d_part, sizeof(particles));
+  cudaMalloc(&d_field, sizeof(EMfield));
+  cudaMalloc(&d_grd, sizeof(grid));
+  cudaMalloc(&d_param, sizeof(parameters));
+
+  // 2. Allocate memory for arrays on device
   FPpart *d_x, *d_y, *d_z;
   FPpart *d_u, *d_v, *d_w;
-  FPpart *d_XN_flat, *d_YN_flat, *d_ZN_flat;
-  FPfield *d_Ex_flat, *d_Ey_flat, *d_Ez_flat, *d_Bxn_flat, *d_Byn_flat,
-      *d_Bzn_flat;
 
-  // Allocate memory on the device
   cudaMalloc(&d_x, nop * sizeof(FPpart));
   cudaMalloc(&d_y, nop * sizeof(FPpart));
   cudaMalloc(&d_z, nop * sizeof(FPpart));
   cudaMalloc(&d_u, nop * sizeof(FPpart));
   cudaMalloc(&d_v, nop * sizeof(FPpart));
   cudaMalloc(&d_w, nop * sizeof(FPpart));
+
+  // Grid and field arrays
+  FPpart *d_XN_flat, *d_YN_flat, *d_ZN_flat;
+  FPfield *d_Ex_flat, *d_Ey_flat, *d_Ez_flat;
+  FPfield *d_Bxn_flat, *d_Byn_flat, *d_Bzn_flat;
+
   cudaMalloc(&d_XN_flat, nxn * nyn * nzn * sizeof(FPpart));
   cudaMalloc(&d_YN_flat, nxn * nyn * nzn * sizeof(FPpart));
   cudaMalloc(&d_ZN_flat, nxn * nyn * nzn * sizeof(FPpart));
@@ -448,13 +457,14 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMalloc(&d_Byn_flat, nxn * nyn * nzn * sizeof(FPfield));
   cudaMalloc(&d_Bzn_flat, nxn * nyn * nzn * sizeof(FPfield));
 
-  // Copy data from host to device
+  // 3. Copy array data to device
   cudaMemcpy(d_x, part->x, nop * sizeof(FPpart), cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, part->y, nop * sizeof(FPpart), cudaMemcpyHostToDevice);
   cudaMemcpy(d_z, part->z, nop * sizeof(FPpart), cudaMemcpyHostToDevice);
   cudaMemcpy(d_u, part->u, nop * sizeof(FPpart), cudaMemcpyHostToDevice);
   cudaMemcpy(d_v, part->v, nop * sizeof(FPpart), cudaMemcpyHostToDevice);
   cudaMemcpy(d_w, part->w, nop * sizeof(FPpart), cudaMemcpyHostToDevice);
+
   cudaMemcpy(d_XN_flat, grd->XN_flat, nxn * nyn * nzn * sizeof(FPpart),
              cudaMemcpyHostToDevice);
   cudaMemcpy(d_YN_flat, grd->YN_flat, nxn * nyn * nzn * sizeof(FPpart),
@@ -474,24 +484,47 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMemcpy(d_Bzn_flat, field->Bzn_flat, nxn * nyn * nzn * sizeof(FPfield),
              cudaMemcpyHostToDevice);
 
-  // Initialize number of threads
+  // 4. Create temporary structs with device pointers
+  particles temp_part = *part;
+  EMfield temp_field = *field;
+  grid temp_grd = *grd;
+
+  // 5. Update pointers in temporary structs to point to device memory
+  temp_part.x = d_x;
+  temp_part.y = d_y;
+  temp_part.z = d_z;
+  temp_part.u = d_u;
+  temp_part.v = d_v;
+  temp_part.w = d_w;
+
+  temp_field.Ex_flat = d_Ex_flat;
+  temp_field.Ey_flat = d_Ey_flat;
+  temp_field.Ez_flat = d_Ez_flat;
+  temp_field.Bxn_flat = d_Bxn_flat;
+  temp_field.Byn_flat = d_Byn_flat;
+  temp_field.Bzn_flat = d_Bzn_flat;
+
+  temp_grd.XN_flat = d_XN_flat;
+  temp_grd.YN_flat = d_YN_flat;
+  temp_grd.ZN_flat = d_ZN_flat;
+
+  // 6. Copy the temporary structs with device pointers to device
+  cudaMemcpy(d_part, &temp_part, sizeof(particles), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_field, &temp_field, sizeof(EMfield), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_grd, &temp_grd, sizeof(grid), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_param, param, sizeof(parameters), cudaMemcpyHostToDevice);
+
+  // 7. Launch kernel
   int threadsPerBlock = 256;
   int blocksPerGrid = (part->nop + threadsPerBlock - 1) / threadsPerBlock;
 
-  // Loop over all sub cycles. Wait untill finished for a number of points
-  // before you go to the next
   for (int i_sub = 0; i_sub < part->n_sub_cycles; i_sub++) {
-    mover_PC_kernel<<<blocksPerGrid, threadsPerBlock>>>(
-        d_x, d_y, d_z, d_u, d_v, d_w, d_XN_flat, d_YN_flat, d_ZN_flat,
-        d_Ex_flat, d_Ey_flat, d_Ez_flat, d_Bxn_flat, d_Byn_flat, d_Bzn_flat,
-        grd->invVOL, grd->xStart, grd->yStart, grd->zStart, grd->invdx,
-        grd->invdy, grd->invdz, param->Lx, param->Ly, param->Lz, dt_sub_cycling,
-        dto2, qomdt2, param->PERIODICX, param->PERIODICY, param->PERIODICZ, nxn,
-        nyn, nzn, nop, part->NiterMover);
+    mover_PC_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_part, d_field, d_grd,
+                                                        d_param);
     cudaDeviceSynchronize();
   }
 
-  // Copy back to CPU
+  // 8. Copy results back to host
   cudaMemcpy(part->x, d_x, nop * sizeof(FPpart), cudaMemcpyDeviceToHost);
   cudaMemcpy(part->y, d_y, nop * sizeof(FPpart), cudaMemcpyDeviceToHost);
   cudaMemcpy(part->z, d_z, nop * sizeof(FPpart), cudaMemcpyDeviceToHost);
@@ -499,7 +532,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMemcpy(part->v, d_v, nop * sizeof(FPpart), cudaMemcpyDeviceToHost);
   cudaMemcpy(part->w, d_w, nop * sizeof(FPpart), cudaMemcpyDeviceToHost);
 
-  // Free memory
+  // 9. Free device memory
   cudaFree(d_x);
   cudaFree(d_y);
   cudaFree(d_z);
@@ -515,6 +548,10 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaFree(d_Bxn_flat);
   cudaFree(d_Byn_flat);
   cudaFree(d_Bzn_flat);
+  cudaFree(d_part);
+  cudaFree(d_field);
+  cudaFree(d_grd);
+  cudaFree(d_param);
 
   return 0;
 }
