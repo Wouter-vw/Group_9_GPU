@@ -53,7 +53,6 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         }
         // std::cout << "OK" << std::endl;
         //  electric field
-        //  electric field
         field->electricField[i][j][k].x = 0.0;
         field->electricField[i][j][k].y = 0.0;
         field->electricField[i][j][k].z = 0.0;

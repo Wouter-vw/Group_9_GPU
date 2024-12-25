@@ -6,14 +6,8 @@
 #include "Alloc.h"
 #include "Parameters.h"
 #include "PrecisionTypes.h"
+#include "Basic.h"
 
-template <typename T>
-class Vec3 {
- public:
-  T x, y, z;
-  Vec3() : x(0), y(0), z(0) {}
-  Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
-};
 
 /** Grid Data */
 struct grid {
