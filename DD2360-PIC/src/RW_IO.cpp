@@ -422,13 +422,13 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
     for (int k=1; k < nzn-2; k++)
        for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
-            Bx = field->Bxn[i][j][k];
+            Bx = field->magneticField[i][j][k].x;
             if (fabs(Bx) < 1E-8)
                 Bx = 0.0;
-            By = field->Byn[i][j][k];
+            By = field->magneticField[i][j][k].y;
             if (fabs(By) < 1E-8)
                 By = 0.0;
-            Bz = field->Bzn[i][j][k];
+            Bz = field->magneticField[i][j][k].z;
             if (fabs(Bz) < 1E-8)
                 Bz = 0.0;
             my_file2 << Bx << " " << By  <<  " " << Bz <<  std::endl;

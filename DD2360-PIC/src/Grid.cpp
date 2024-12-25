@@ -82,8 +82,7 @@ void grid_deallocate(struct grid *grd) {
 
 /** interpolation Node to Center */
 void interpN2Cfield(FPfield ***vecFieldCx, FPfield ***vecFieldCy,
-                    FPfield ***vecFieldCz, FPfield ***vecFieldNx,
-                    FPfield ***vecFieldNy, FPfield ***vecFieldNz,
+                    FPfield ***vecFieldCz, Vec3<FPfield> ***vecField,
                     struct grid *grd) {
   // Here I changed from 1 to 0. I assume that the BC have been applied on the
   // first.
@@ -93,24 +92,24 @@ void interpN2Cfield(FPfield ***vecFieldCx, FPfield ***vecFieldCy,
         // X - component
         vecFieldCx[i][j][k] =
             .125 *
-            (vecFieldNx[i][j][k] + vecFieldNx[i + 1][j][k] +
-             vecFieldNx[i][j + 1][k] + vecFieldNx[i][j][k + 1] +
-             vecFieldNx[i + 1][j + 1][k] + vecFieldNx[i + 1][j][k + 1] +
-             vecFieldNx[i][j + 1][k + 1] + vecFieldNx[i + 1][j + 1][k + 1]);
+            (vecField[i][j][k].x + vecField[i + 1][j][k].x +
+             vecField[i][j + 1][k].x + vecField[i][j][k + 1].x +
+             vecField[i + 1][j + 1][k].x + vecField[i + 1][j][k + 1].x +
+             vecField[i][j + 1][k + 1].x + vecField[i + 1][j + 1][k + 1].x);
         // Y - component
         vecFieldCy[i][j][k] =
             .125 *
-            (vecFieldNy[i][j][k] + vecFieldNy[i + 1][j][k] +
-             vecFieldNy[i][j + 1][k] + vecFieldNy[i][j][k + 1] +
-             vecFieldNy[i + 1][j + 1][k] + vecFieldNy[i + 1][j][k + 1] +
-             vecFieldNy[i][j + 1][k + 1] + vecFieldNy[i + 1][j + 1][k + 1]);
+            (vecField[i][j][k].y + vecField[i + 1][j][k].y +
+             vecField[i][j + 1][k].y + vecField[i][j][k + 1].y +
+             vecField[i + 1][j + 1][k].y + vecField[i + 1][j][k + 1].y +
+             vecField[i][j + 1][k + 1].y + vecField[i + 1][j + 1][k + 1].y);
         // Z - component
         vecFieldCz[i][j][k] =
             .125 *
-            (vecFieldNz[i][j][k] + vecFieldNz[i + 1][j][k] +
-             vecFieldNz[i][j + 1][k] + vecFieldNz[i][j][k + 1] +
-             vecFieldNz[i + 1][j + 1][k] + vecFieldNz[i + 1][j][k + 1] +
-             vecFieldNz[i][j + 1][k + 1] + vecFieldNz[i + 1][j + 1][k + 1]);
+            (vecField[i][j][k].z + vecField[i + 1][j][k].z +
+             vecField[i][j + 1][k].z + vecField[i][j][k + 1].z +
+             vecField[i + 1][j + 1][k].z + vecField[i + 1][j][k + 1].z +
+             vecField[i][j + 1][k + 1].z + vecField[i + 1][j + 1][k + 1].z);
       }
 }
 

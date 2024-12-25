@@ -41,10 +41,11 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         for (int is = 0; is < param->ns; is++) {
           if (is < 2)  // current sheet
             ids[is].rhon[i][j][k] =
-                (FPinterp)((
-                    param->rhoINIT[is] /
-                    (cosh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta) *
-                     cosh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta)))) /
+                (FPinterp)((param->rhoINIT[is] /
+                            (cosh((grd->nodes[i][j][k].y - grd->Ly / 2) /
+                                  param->delta) *
+                             cosh((grd->nodes[i][j][k].y - grd->Ly / 2) /
+                                  param->delta)))) /
                 param->fourpi;
           else  // background
             ids[is].rhon[i][j][k] =
@@ -60,13 +61,14 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         field_aux->Eyth[i][j][k] = 0.0;
         field_aux->Ezth[i][j][k] = 0.0;
         // Magnetic field
-        field->Bxn[i][j][k] =
-            param->B0x * tanh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta);
+        field->magneticField[i][j][k].x =
+            param->B0x *
+            tanh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta);
         // add the initial GEM perturbation
-        // Bxn[i][j][k] +=
+        // magneticField[i][j][k].x +=
         // (B0x/10.0)*(M_PI/Ly)*cos(2*M_PI*grid->getXN(i,j,k)/Lx)*sin(M_PI*(grid->getYN(i,j,k)-
         // Ly/2)/Ly  );
-        field->Byn[i][j][k] =
+        field->magneticField[i][j][k].y =
             param
                 ->B0y;  // -
                         // (B0x/10.0)*(2*M_PI/Lx)*sin(2*M_PI*grid->getXN(i,j,k)/Lx)*cos(M_PI*(grid->getYN(i,j,k)-
@@ -76,14 +78,14 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         ypert = grd->nodes[i][j][k].y - grd->Ly / 2;
         exp_pert = exp(-(xpert / param->delta) * (xpert / param->delta) -
                        (ypert / param->delta) * (ypert / param->delta));
-        field->Bxn[i][j][k] +=
+        field->magneticField[i][j][k].x +=
             (param->B0x * pertX) * exp_pert *
             (-cos(M_PI * xpert / 10.0 / param->delta) *
                  cos(M_PI * ypert / 10.0 / param->delta) * 2.0 * ypert /
                  param->delta -
              cos(M_PI * xpert / 10.0 / param->delta) *
                  sin(M_PI * ypert / 10.0 / param->delta) * M_PI / 10.0);
-        field->Byn[i][j][k] +=
+        field->magneticField[i][j][k].y +=
             (param->B0x * pertX) * exp_pert *
             (cos(M_PI * xpert / 10.0 / param->delta) *
                  cos(M_PI * ypert / 10.0 / param->delta) * 2.0 * xpert /
@@ -91,11 +93,11 @@ inline void initGEM(struct parameters* param, struct grid* grd,
              sin(M_PI * xpert / 10.0 / param->delta) *
                  cos(M_PI * ypert / 10.0 / param->delta) * M_PI / 10.0);
         // guide field
-        field->Bzn[i][j][k] = param->B0z;
+        field->magneticField[i][j][k].z = param->B0z;
       }
   // calculate B and rho at centers cells: first argument is on center cell
-  interpN2Cfield(field_aux->Bxc, field_aux->Byc, field_aux->Bzc, field->Bxn,
-                 field->Byn, field->Bzn, grd);
+  interpN2Cfield(field_aux->Bxc, field_aux->Byc, field_aux->Bzc,
+                 field->magneticField, grd);
   // interpolate densities species from node
   for (int is = 0; is < param->ns; is++) {
     interpN2Crho(&ids[is], grd);
@@ -124,11 +126,14 @@ inline void initGEM(struct parameters* param, struct grid* grd,
                 // initialize each particle position and charge. Particle
                 // uniform in space
                 part[is].data[counter].x =
-                    (ii + .5) * (grd->dx / part[is].npcelx) + grd->nodes[i][j][k].x;
+                    (ii + .5) * (grd->dx / part[is].npcelx) +
+                    grd->nodes[i][j][k].x;
                 part[is].data[counter].y =
-                    (jj + .5) * (grd->dy / part[is].npcely) + grd->nodes[i][j][k].y;
+                    (jj + .5) * (grd->dy / part[is].npcely) +
+                    grd->nodes[i][j][k].y;
                 part[is].data[counter].z =
-                    (kk + .5) * (grd->dz / part[is].npcelz) + grd->nodes[i][j][k].z;
+                    (kk + .5) * (grd->dz / part[is].npcelz) +
+                    grd->nodes[i][j][k].z;
                 // q = charge * statistical weight
                 part[is].data[counter].q =
                     (part[is].qom / fabs(part[is].qom)) *

@@ -10,17 +10,13 @@ struct EMfield {
     // field arrays: 4D arrays
     
     /* Electric field defined on nodes: last index is component */
+    // originally Ex, Ey, Ez
     Vec3<FPfield> ***electricField;
     Vec3<FPfield> *electricField_flat;
     /* Magnetic field defined on nodes: last index is component */
-    FPfield*** Bxn;
-    FPfield* Bxn_flat;
-    FPfield*** Byn;
-    FPfield* Byn_flat;
-    FPfield*** Bzn;
-    FPfield* Bzn_flat;
-    
-    
+    // originally Bx, By, Bz
+    Vec3<FPfield> ***magneticField;
+    Vec3<FPfield> *magneticField_flat;
 };
 
 /** allocate electric and magnetic field */

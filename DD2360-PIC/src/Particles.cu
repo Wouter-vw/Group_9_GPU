@@ -115,9 +115,12 @@ int particleUpdate(int i, struct particles* part, struct EMfield* field,
                  field->electricField[ix - ii][iy - jj][iz - kk].y;
           Ezl += weight[ii][jj][kk] *
                  field->electricField[ix - ii][iy - jj][iz - kk].z;
-          Bxl += weight[ii][jj][kk] * field->Bxn[ix - ii][iy - jj][iz - kk];
-          Byl += weight[ii][jj][kk] * field->Byn[ix - ii][iy - jj][iz - kk];
-          Bzl += weight[ii][jj][kk] * field->Bzn[ix - ii][iy - jj][iz - kk];
+          Bxl += weight[ii][jj][kk] *
+                 field->magneticField[ix - ii][iy - jj][iz - kk].x;
+          Byl += weight[ii][jj][kk] *
+                 field->magneticField[ix - ii][iy - jj][iz - kk].y;
+          Bzl += weight[ii][jj][kk] *
+                 field->magneticField[ix - ii][iy - jj][iz - kk].z;
         }
 
     // end interpolation
@@ -316,9 +319,9 @@ __global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
             Exl += weight[ii][jj][kk] * field->electricField_flat[idx].x;
             Eyl += weight[ii][jj][kk] * field->electricField_flat[idx].y;
             Ezl += weight[ii][jj][kk] * field->electricField_flat[idx].z;
-            Bxl += weight[ii][jj][kk] * field->Bxn_flat[idx];
-            Byl += weight[ii][jj][kk] * field->Byn_flat[idx];
-            Bzl += weight[ii][jj][kk] * field->Bzn_flat[idx];
+            Bxl += weight[ii][jj][kk] * field->magneticField_flat[idx].x;
+            Byl += weight[ii][jj][kk] * field->magneticField_flat[idx].y;
+            Bzl += weight[ii][jj][kk] * field->magneticField_flat[idx].z;
           }
         }
       }
@@ -432,13 +435,11 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   // Grid and field arrays
   Vec3<FPpart>* d_nodes_flat;
   Vec3<FPfield>* d_electricField_flat;
-  FPfield *d_Bxn_flat, *d_Byn_flat, *d_Bzn_flat;
+  Vec3<FPfield>* d_magneticField_flat;
 
   cudaMalloc(&d_nodes_flat, nxn * nyn * nzn * sizeof(Vec3<FPpart>));
   cudaMalloc(&d_electricField_flat, nxn * nyn * nzn * sizeof(Vec3<FPfield>));
-  cudaMalloc(&d_Bxn_flat, nxn * nyn * nzn * sizeof(FPfield));
-  cudaMalloc(&d_Byn_flat, nxn * nyn * nzn * sizeof(FPfield));
-  cudaMalloc(&d_Bzn_flat, nxn * nyn * nzn * sizeof(FPfield));
+  cudaMalloc(&d_magneticField_flat, nxn * nyn * nzn * sizeof(Vec3<FPfield>));
 
   // 3. Copy array data to device
   cudaMemcpy(d_data, part->data, nop * sizeof(Particle),
@@ -449,12 +450,8 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
 
   cudaMemcpy(d_electricField_flat, field->electricField_flat,
              nxn * nyn * nzn * sizeof(Vec3<FPfield>), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Bxn_flat, field->Bxn_flat, nxn * nyn * nzn * sizeof(FPfield),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Byn_flat, field->Byn_flat, nxn * nyn * nzn * sizeof(FPfield),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Bzn_flat, field->Bzn_flat, nxn * nyn * nzn * sizeof(FPfield),
-             cudaMemcpyHostToDevice);
+  cudaMemcpy(d_magneticField_flat, field->magneticField_flat,
+             nxn * nyn * nzn * sizeof(Vec3<FPfield>), cudaMemcpyHostToDevice);
 
   // 4. Create temporary structs with device pointers
   particles temp_part = *part;
@@ -465,10 +462,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   temp_part.data = d_data;
 
   temp_field.electricField_flat = d_electricField_flat;
-  temp_field.Bxn_flat = d_Bxn_flat;
-  temp_field.Byn_flat = d_Byn_flat;
-  temp_field.Bzn_flat = d_Bzn_flat;
-
+  temp_field.magneticField_flat = d_magneticField_flat;
   temp_grd.nodes_flat = d_nodes_flat;
 
   // 6. Copy the temporary structs with device pointers to device
@@ -495,9 +489,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaFree(d_data);
   cudaFree(d_nodes_flat);
   cudaFree(d_electricField_flat);
-  cudaFree(d_Bxn_flat);
-  cudaFree(d_Byn_flat);
-  cudaFree(d_Bzn_flat);
+  cudaFree(d_magneticField_flat);
   cudaFree(d_part);
   cudaFree(d_field);
   cudaFree(d_grd);
