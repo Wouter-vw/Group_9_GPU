@@ -92,12 +92,12 @@ int particleUpdate(int i, struct particles* part, struct EMfield* field,
     iz = 2 + int((part->data[i].z - grd->zStart) * grd->invdz);
 
     // calculate weights
-    xi[0] = part->data[i].x - grd->XN[ix - 1][iy][iz];
-    eta[0] = part->data[i].y - grd->YN[ix][iy - 1][iz];
-    zeta[0] = part->data[i].z - grd->ZN[ix][iy][iz - 1];
-    xi[1] = grd->XN[ix][iy][iz] - part->data[i].x;
-    eta[1] = grd->YN[ix][iy][iz] - part->data[i].y;
-    zeta[1] = grd->ZN[ix][iy][iz] - part->data[i].z;
+    xi[0] = part->data[i].x - grd->nodes[ix - 1][iy][iz].x;
+    eta[0] = part->data[i].y - grd->nodes[ix][iy - 1][iz].y;
+    zeta[0] = part->data[i].z - grd->nodes[ix][iy][iz - 1].z;
+    xi[1] = grd->nodes[ix][iy][iz].x - part->data[i].x;
+    eta[1] = grd->nodes[ix][iy][iz].y - part->data[i].y;
+    zeta[1] = grd->nodes[ix][iy][iz].z - part->data[i].z;
     for (int ii = 0; ii < 2; ii++)
       for (int jj = 0; jj < 2; jj++)
         for (int kk = 0; kk < 2; kk++)
@@ -273,19 +273,19 @@ __global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
       // Check indixing
       xi[0] =
           part->data[i].x -
-          grd->XN_flat[(ix - 1) * (grd->nyn * grd->nzn) + (iy)*grd->nzn + (iz)];
+          grd->nodes_flat[(ix - 1) * (grd->nyn * grd->nzn) + (iy)*grd->nzn + (iz)].x;
       eta[0] =
           part->data[i].y -
-          grd->YN_flat[ix * grd->nyn * grd->nzn + (iy - 1) * grd->nzn + (iz)];
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy - 1) * grd->nzn + (iz)].y;
       zeta[0] =
           part->data[i].z -
-          grd->ZN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz - 1)];
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz - 1)].z;
 
-      xi[1] = grd->XN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)] -
+      xi[1] = grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].x -
               part->data[i].x;
-      eta[1] = grd->YN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)] -
+      eta[1] = grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].y -
                part->data[i].y;
-      zeta[1] = grd->ZN_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)] -
+      zeta[1] = grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].z -
                 part->data[i].z;
 
       for (int ii = 0; ii < 2; ii++) {
@@ -421,13 +421,11 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMalloc(&d_data, nop * sizeof(Particle));
 
   // Grid and field arrays
-  FPpart *d_XN_flat, *d_YN_flat, *d_ZN_flat;
+  Vec3<FPpart> *d_nodes_flat;
   FPfield *d_Ex_flat, *d_Ey_flat, *d_Ez_flat;
   FPfield *d_Bxn_flat, *d_Byn_flat, *d_Bzn_flat;
 
-  cudaMalloc(&d_XN_flat, nxn * nyn * nzn * sizeof(FPpart));
-  cudaMalloc(&d_YN_flat, nxn * nyn * nzn * sizeof(FPpart));
-  cudaMalloc(&d_ZN_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_nodes_flat, nxn * nyn * nzn * sizeof(Vec3<FPpart>));
   cudaMalloc(&d_Ex_flat, nxn * nyn * nzn * sizeof(FPfield));
   cudaMalloc(&d_Ey_flat, nxn * nyn * nzn * sizeof(FPfield));
   cudaMalloc(&d_Ez_flat, nxn * nyn * nzn * sizeof(FPfield));
@@ -439,12 +437,8 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMemcpy(d_data, part->data, nop * sizeof(Particle),
              cudaMemcpyHostToDevice);
 
-  cudaMemcpy(d_XN_flat, grd->XN_flat, nxn * nyn * nzn * sizeof(FPpart),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_YN_flat, grd->YN_flat, nxn * nyn * nzn * sizeof(FPpart),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_ZN_flat, grd->ZN_flat, nxn * nyn * nzn * sizeof(FPpart),
-             cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nodes_flat, grd->nodes_flat,
+             nxn * nyn * nzn * sizeof(Vec3<FPpart>), cudaMemcpyHostToDevice);
   cudaMemcpy(d_Ex_flat, field->Ex_flat, nxn * nyn * nzn * sizeof(FPfield),
              cudaMemcpyHostToDevice);
   cudaMemcpy(d_Ey_flat, field->Ey_flat, nxn * nyn * nzn * sizeof(FPfield),
@@ -473,9 +467,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   temp_field.Byn_flat = d_Byn_flat;
   temp_field.Bzn_flat = d_Bzn_flat;
 
-  temp_grd.XN_flat = d_XN_flat;
-  temp_grd.YN_flat = d_YN_flat;
-  temp_grd.ZN_flat = d_ZN_flat;
+  temp_grd.nodes_flat = d_nodes_flat;
 
   // 6. Copy the temporary structs with device pointers to device
   cudaMemcpy(d_part, &temp_part, sizeof(particles), cudaMemcpyHostToDevice);
@@ -499,9 +491,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
 
   // 9. Free device memory
   cudaFree(d_data);
-  cudaFree(d_XN_flat);
-  cudaFree(d_YN_flat);
-  cudaFree(d_ZN_flat);
+  cudaFree(d_nodes_flat);
   cudaFree(d_Ex_flat);
   cudaFree(d_Ey_flat);
   cudaFree(d_Ez_flat);
@@ -534,12 +524,12 @@ void interpP2G(struct particles* part, struct interpDensSpecies* ids,
     iz = 2 + int(floor((part->data[i].z - grd->zStart) * grd->invdz));
 
     // distances from node
-    xi[0] = part->data[i].x - grd->XN[ix - 1][iy][iz];
-    eta[0] = part->data[i].y - grd->YN[ix][iy - 1][iz];
-    zeta[0] = part->data[i].z - grd->ZN[ix][iy][iz - 1];
-    xi[1] = grd->XN[ix][iy][iz] - part->data[i].x;
-    eta[1] = grd->YN[ix][iy][iz] - part->data[i].y;
-    zeta[1] = grd->ZN[ix][iy][iz] - part->data[i].z;
+    xi[0] = part->data[i].x - grd->nodes[ix - 1][iy][iz].x;
+    eta[0] = part->data[i].y - grd->nodes[ix][iy - 1][iz].y;
+    zeta[0] = part->data[i].z - grd->nodes[ix][iy][iz - 1].z;
+    xi[1] = grd->nodes[ix][iy][iz].x - part->data[i].x;
+    eta[1] = grd->nodes[ix][iy][iz].y - part->data[i].y;
+    zeta[1] = grd->nodes[ix][iy][iz].z - part->data[i].z;
 
     // calculate the weights for different nodes
     for (int ii = 0; ii < 2; ii++)

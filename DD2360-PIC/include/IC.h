@@ -43,8 +43,8 @@ inline void initGEM(struct parameters* param, struct grid* grd,
             ids[is].rhon[i][j][k] =
                 (FPinterp)((
                     param->rhoINIT[is] /
-                    (cosh((grd->YN[i][j][k] - grd->Ly / 2) / param->delta) *
-                     cosh((grd->YN[i][j][k] - grd->Ly / 2) / param->delta)))) /
+                    (cosh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta) *
+                     cosh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta)))) /
                 param->fourpi;
           else  // background
             ids[is].rhon[i][j][k] =
@@ -61,7 +61,7 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         field_aux->Ezth[i][j][k] = 0.0;
         // Magnetic field
         field->Bxn[i][j][k] =
-            param->B0x * tanh((grd->YN[i][j][k] - grd->Ly / 2) / param->delta);
+            param->B0x * tanh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta);
         // add the initial GEM perturbation
         // Bxn[i][j][k] +=
         // (B0x/10.0)*(M_PI/Ly)*cos(2*M_PI*grid->getXN(i,j,k)/Lx)*sin(M_PI*(grid->getYN(i,j,k)-
@@ -72,8 +72,8 @@ inline void initGEM(struct parameters* param, struct grid* grd,
                         // (B0x/10.0)*(2*M_PI/Lx)*sin(2*M_PI*grid->getXN(i,j,k)/Lx)*cos(M_PI*(grid->getYN(i,j,k)-
                         // Ly/2)/Ly);
         // add the initial X perturbation
-        xpert = grd->XN[i][j][k] - grd->Lx / 2;
-        ypert = grd->YN[i][j][k] - grd->Ly / 2;
+        xpert = grd->nodes[i][j][k].x - grd->Lx / 2;
+        ypert = grd->nodes[i][j][k].y - grd->Ly / 2;
         exp_pert = exp(-(xpert / param->delta) * (xpert / param->delta) -
                        (ypert / param->delta) * (ypert / param->delta));
         field->Bxn[i][j][k] +=
@@ -124,11 +124,11 @@ inline void initGEM(struct parameters* param, struct grid* grd,
                 // initialize each particle position and charge. Particle
                 // uniform in space
                 part[is].data[counter].x =
-                    (ii + .5) * (grd->dx / part[is].npcelx) + grd->XN[i][j][k];
+                    (ii + .5) * (grd->dx / part[is].npcelx) + grd->nodes[i][j][k].x;
                 part[is].data[counter].y =
-                    (jj + .5) * (grd->dy / part[is].npcely) + grd->YN[i][j][k];
+                    (jj + .5) * (grd->dy / part[is].npcely) + grd->nodes[i][j][k].y;
                 part[is].data[counter].z =
-                    (kk + .5) * (grd->dz / part[is].npcelz) + grd->ZN[i][j][k];
+                    (kk + .5) * (grd->dz / part[is].npcelz) + grd->nodes[i][j][k].z;
                 // q = charge * statistical weight
                 part[is].data[counter].q =
                     (part[is].qom / fabs(part[is].qom)) *
