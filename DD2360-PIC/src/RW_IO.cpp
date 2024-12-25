@@ -387,13 +387,13 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
     for (int k=1; k < nzn-2; k++)
       for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
-            Ex = field->Ex[i][j][k];
+            Ex = field->electricField[i][j][k].x;
             if (fabs(Ex) < 1E-8)
                 Ex = 0.0;
-            Ey = field->Ey[i][j][k];
+            Ey = field->electricField[i][j][k].y;
             if (fabs(Ey) < 1E-8)
                 Ey = 0.0;
-            Ez = field->Ez[i][j][k];
+            Ez = field->electricField[i][j][k].z;
             if (fabs(Ez) < 1E-8)
                 Ez = 0.0;
             my_fileE << Ex << " " << Ey <<  " " << Ez <<  std::endl;

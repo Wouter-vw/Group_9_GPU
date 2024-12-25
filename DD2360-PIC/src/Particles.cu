@@ -109,9 +109,12 @@ int particleUpdate(int i, struct particles* part, struct EMfield* field,
     for (int ii = 0; ii < 2; ii++)
       for (int jj = 0; jj < 2; jj++)
         for (int kk = 0; kk < 2; kk++) {
-          Exl += weight[ii][jj][kk] * field->Ex[ix - ii][iy - jj][iz - kk];
-          Eyl += weight[ii][jj][kk] * field->Ey[ix - ii][iy - jj][iz - kk];
-          Ezl += weight[ii][jj][kk] * field->Ez[ix - ii][iy - jj][iz - kk];
+          Exl += weight[ii][jj][kk] *
+                 field->electricField[ix - ii][iy - jj][iz - kk].x;
+          Eyl += weight[ii][jj][kk] *
+                 field->electricField[ix - ii][iy - jj][iz - kk].y;
+          Ezl += weight[ii][jj][kk] *
+                 field->electricField[ix - ii][iy - jj][iz - kk].z;
           Bxl += weight[ii][jj][kk] * field->Bxn[ix - ii][iy - jj][iz - kk];
           Byl += weight[ii][jj][kk] * field->Byn[ix - ii][iy - jj][iz - kk];
           Bzl += weight[ii][jj][kk] * field->Bzn[ix - ii][iy - jj][iz - kk];
@@ -272,21 +275,27 @@ __global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
 
       // Check indixing
       xi[0] =
-          part->data[i].x -
-          grd->nodes_flat[(ix - 1) * (grd->nyn * grd->nzn) + (iy)*grd->nzn + (iz)].x;
+          part->data[i].x - grd->nodes_flat[(ix - 1) * (grd->nyn * grd->nzn) +
+                                            (iy)*grd->nzn + (iz)]
+                                .x;
       eta[0] =
           part->data[i].y -
-          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy - 1) * grd->nzn + (iz)].y;
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy - 1) * grd->nzn + (iz)]
+              .y;
       zeta[0] =
           part->data[i].z -
-          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz - 1)].z;
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz - 1)]
+              .z;
 
-      xi[1] = grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].x -
-              part->data[i].x;
-      eta[1] = grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].y -
-               part->data[i].y;
-      zeta[1] = grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].z -
-                part->data[i].z;
+      xi[1] =
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].x -
+          part->data[i].x;
+      eta[1] =
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].y -
+          part->data[i].y;
+      zeta[1] =
+          grd->nodes_flat[ix * grd->nyn * grd->nzn + (iy)*grd->nzn + (iz)].z -
+          part->data[i].z;
 
       for (int ii = 0; ii < 2; ii++) {
         for (int jj = 0; jj < 2; jj++) {
@@ -304,9 +313,9 @@ __global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
             // Check idx index
             int idx = (ix - ii) * grd->nyn * grd->nzn + (iy - jj) * grd->nzn +
                       (iz - kk);
-            Exl += weight[ii][jj][kk] * field->Ex_flat[idx];
-            Eyl += weight[ii][jj][kk] * field->Ey_flat[idx];
-            Ezl += weight[ii][jj][kk] * field->Ez_flat[idx];
+            Exl += weight[ii][jj][kk] * field->electricField_flat[idx].x;
+            Eyl += weight[ii][jj][kk] * field->electricField_flat[idx].y;
+            Ezl += weight[ii][jj][kk] * field->electricField_flat[idx].z;
             Bxl += weight[ii][jj][kk] * field->Bxn_flat[idx];
             Byl += weight[ii][jj][kk] * field->Byn_flat[idx];
             Bzl += weight[ii][jj][kk] * field->Bzn_flat[idx];
@@ -421,14 +430,12 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMalloc(&d_data, nop * sizeof(Particle));
 
   // Grid and field arrays
-  Vec3<FPpart> *d_nodes_flat;
-  FPfield *d_Ex_flat, *d_Ey_flat, *d_Ez_flat;
+  Vec3<FPpart>* d_nodes_flat;
+  Vec3<FPfield>* d_electricField_flat;
   FPfield *d_Bxn_flat, *d_Byn_flat, *d_Bzn_flat;
 
   cudaMalloc(&d_nodes_flat, nxn * nyn * nzn * sizeof(Vec3<FPpart>));
-  cudaMalloc(&d_Ex_flat, nxn * nyn * nzn * sizeof(FPfield));
-  cudaMalloc(&d_Ey_flat, nxn * nyn * nzn * sizeof(FPfield));
-  cudaMalloc(&d_Ez_flat, nxn * nyn * nzn * sizeof(FPfield));
+  cudaMalloc(&d_electricField_flat, nxn * nyn * nzn * sizeof(Vec3<FPfield>));
   cudaMalloc(&d_Bxn_flat, nxn * nyn * nzn * sizeof(FPfield));
   cudaMalloc(&d_Byn_flat, nxn * nyn * nzn * sizeof(FPfield));
   cudaMalloc(&d_Bzn_flat, nxn * nyn * nzn * sizeof(FPfield));
@@ -439,12 +446,9 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
 
   cudaMemcpy(d_nodes_flat, grd->nodes_flat,
              nxn * nyn * nzn * sizeof(Vec3<FPpart>), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Ex_flat, field->Ex_flat, nxn * nyn * nzn * sizeof(FPfield),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Ey_flat, field->Ey_flat, nxn * nyn * nzn * sizeof(FPfield),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_Ez_flat, field->Ez_flat, nxn * nyn * nzn * sizeof(FPfield),
-             cudaMemcpyHostToDevice);
+
+  cudaMemcpy(d_electricField_flat, field->electricField_flat,
+             nxn * nyn * nzn * sizeof(Vec3<FPfield>), cudaMemcpyHostToDevice);
   cudaMemcpy(d_Bxn_flat, field->Bxn_flat, nxn * nyn * nzn * sizeof(FPfield),
              cudaMemcpyHostToDevice);
   cudaMemcpy(d_Byn_flat, field->Byn_flat, nxn * nyn * nzn * sizeof(FPfield),
@@ -460,9 +464,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   // 5. Update pointers in temporary structs to point to device memory
   temp_part.data = d_data;
 
-  temp_field.Ex_flat = d_Ex_flat;
-  temp_field.Ey_flat = d_Ey_flat;
-  temp_field.Ez_flat = d_Ez_flat;
+  temp_field.electricField_flat = d_electricField_flat;
   temp_field.Bxn_flat = d_Bxn_flat;
   temp_field.Byn_flat = d_Byn_flat;
   temp_field.Bzn_flat = d_Bzn_flat;
@@ -492,9 +494,7 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   // 9. Free device memory
   cudaFree(d_data);
   cudaFree(d_nodes_flat);
-  cudaFree(d_Ex_flat);
-  cudaFree(d_Ey_flat);
-  cudaFree(d_Ez_flat);
+  cudaFree(d_electricField_flat);
   cudaFree(d_Bxn_flat);
   cudaFree(d_Byn_flat);
   cudaFree(d_Bzn_flat);
@@ -653,9 +653,3 @@ void interpP2G(struct particles* part, struct interpDensSpecies* ids,
           ids->pzz[ix - ii][iy - jj][iz - kk] += temp[ii][jj][kk] * grd->invVOL;
   }
 }
-
-// **************************************
-//    Tot. Simulation Time (s) = 17.2564
-//    Mover Time / Cycle   (s) = 0.26256
-//    Interp. Time / Cycle (s) = 1.15199
-// ************************************
