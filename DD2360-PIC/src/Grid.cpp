@@ -86,9 +86,9 @@ void interpN2Cfield(FPfield ***vecFieldCx, FPfield ***vecFieldCy,
                     struct grid *grd) {
   // Here I changed from 1 to 0. I assume that the BC have been applied on the
   // first.
-  for (register int i = 0; i < grd->nxc; i++)
-    for (register int j = 0; j < grd->nyc; j++)
-      for (register int k = 0; k < grd->nzc; k++) {
+  for (int i = 0; i < grd->nxc; i++)
+    for (int j = 0; j < grd->nyc; j++)
+      for (int k = 0; k < grd->nzc; k++) {
         // X - component
         vecFieldCx[i][j][k] =
             .125 *
@@ -121,9 +121,9 @@ void interpC2Ninterp(FPinterp ***vecFieldN, FPinterp ***vecFieldC,
   int nyn = grd->nyn;
   int nzn = grd->nzn;
 
-  for (register int i = 1; i < nxn - 1; i++)
-    for (register int j = 1; j < nyn - 1; j++)
-      for (register int k = 1; k < nzn - 1; k++)
+  for (int i = 1; i < nxn - 1; i++)
+    for (int j = 1; j < nyn - 1; j++)
+      for (int k = 1; k < nzn - 1; k++)
         vecFieldN[i][j][k] =
             .125 *
             (vecFieldC[i][j][k] + vecFieldC[i - 1][j][k] +
@@ -140,9 +140,9 @@ void interpC2Nfield(FPfield ***vecFieldN, FPfield ***vecFieldC,
   int nyn = grd->nyn;
   int nzn = grd->nzn;
 
-  for (register int i = 1; i < nxn - 1; i++)
-    for (register int j = 1; j < nyn - 1; j++)
-      for (register int k = 1; k < nzn - 1; k++)
+  for (int i = 1; i < nxn - 1; i++)
+    for (int j = 1; j < nyn - 1; j++)
+      for (int k = 1; k < nzn - 1; k++)
         vecFieldN[i][j][k] =
             .125 *
             (vecFieldC[i][j][k] + vecFieldC[i - 1][j][k] +
@@ -159,9 +159,9 @@ void interpN2Cinterp(FPinterp ***vecFieldC, FPinterp ***vecFieldN,
   int nyc = grd->nyc;
   int nzc = grd->nzc;
 
-  for (register int i = 1; i < nxc - 1; i++)
-    for (register int j = 1; j < nyc - 1; j++)
-      for (register int k = 1; k < nzc - 1; k++)
+  for (int i = 1; i < nxc - 1; i++)
+    for (int j = 1; j < nyc - 1; j++)
+      for (int k = 1; k < nzc - 1; k++)
         vecFieldC[i][j][k] =
             .125 *
             (vecFieldN[i][j][k] + vecFieldN[i + 1][j][k] +
@@ -184,9 +184,9 @@ void gradC2N(FPfield ***gradXN, FPfield ***gradYN, FPfield ***gradZN,
   FPfield invdy = grd->invdy;
   FPfield invdz = grd->invdz;
 
-  for (register int i = 1; i < nxn - 1; i++)
-    for (register int j = 1; j < nyn - 1; j++)
-      for (register int k = 1; k < nzn - 1; k++) {
+  for (int i = 1; i < nxn - 1; i++)
+    for (int j = 1; j < nyn - 1; j++)
+      for (int k = 1; k < nzn - 1; k++) {
         gradXN[i][j][k] =
             .25 * (scFieldC[i][j][k] - scFieldC[i - 1][j][k]) * invdx +
             .25 * (scFieldC[i][j][k - 1] - scFieldC[i - 1][j][k - 1]) * invdx +
@@ -222,9 +222,9 @@ void gradN2C(FPfield ***gradXC, FPfield ***gradYC, FPfield ***gradZC,
   FPfield invdy = grd->invdy;
   FPfield invdz = grd->invdz;
 
-  for (register int i = 1; i < nxc - 1; i++)
-    for (register int j = 1; j < nyc - 1; j++)
-      for (register int k = 1; k < nzc - 1; k++) {
+  for (int i = 1; i < nxc - 1; i++)
+    for (int j = 1; j < nyc - 1; j++)
+      for (int k = 1; k < nzc - 1; k++) {
         gradXC[i][j][k] =
             .25 * (scFieldN[i + 1][j][k] - scFieldN[i][j][k]) * invdx +
             .25 * (scFieldN[i + 1][j][k + 1] - scFieldN[i][j][k + 1]) * invdx +
@@ -265,9 +265,9 @@ void divN2C(FPfield ***divC, FPfield ***vecFieldXN, FPfield ***vecFieldYN,
   FPfield compY;
   FPfield compZ;
 
-  for (register int i = 1; i < nxc - 1; i++)
-    for (register int j = 1; j < nyc - 1; j++)
-      for (register int k = 1; k < nzc - 1; k++) {
+  for (int i = 1; i < nxc - 1; i++)
+    for (int j = 1; j < nyc - 1; j++)
+      for (int k = 1; k < nzc - 1; k++) {
         compX = .25 * (vecFieldXN[i + 1][j][k] - vecFieldXN[i][j][k]) * invdx +
                 .25 * (vecFieldXN[i + 1][j][k + 1] - vecFieldXN[i][j][k + 1]) *
                     invdx +
@@ -319,9 +319,9 @@ void divSymmTensorN2C(FPinterp ***divCX, FPinterp ***divCY, FPinterp ***divCZ,
   FPinterp comp1Y, comp2Y, comp3Y;
   FPinterp comp1Z, comp2Z, comp3Z;
 
-  for (register int i = 1; i < nxc - 1; i++)
-    for (register int j = 1; j < nyc - 1; j++)
-      for (register int k = 1; k < nzc - 1; k++) {
+  for (int i = 1; i < nxc - 1; i++)
+    for (int j = 1; j < nyc - 1; j++)
+      for (int k = 1; k < nzc - 1; k++) {
         comp1X =
             .25 * (pXX[i + 1][j][k] - pXX[i][j][k]) * invdx +
             .25 * (pXX[i + 1][j][k + 1] - pXX[i][j][k + 1]) * invdx +
@@ -392,9 +392,9 @@ void divC2N(FPfield ***divN, FPfield ***vecFieldXC, FPfield ***vecFieldYC,
   FPfield compY;
   FPfield compZ;
 
-  for (register int i = 1; i < nxn - 1; i++)
-    for (register int j = 1; j < nyn - 1; j++)
-      for (register int k = 1; k < nzn - 1; k++) {
+  for (int i = 1; i < nxn - 1; i++)
+    for (int j = 1; j < nyn - 1; j++)
+      for (int k = 1; k < nzn - 1; k++) {
         compX = .25 * (vecFieldXC[i][j][k] - vecFieldXC[i - 1][j][k]) * invdx +
                 .25 * (vecFieldXC[i][j][k - 1] - vecFieldXC[i - 1][j][k - 1]) *
                     invdx +
@@ -444,9 +444,9 @@ void curlC2N(FPfield ***curlXN, FPfield ***curlYN, FPfield ***curlZN,
   FPfield compXDZ, compZDX;
   FPfield compYDX, compXDY;
 
-  for (register int i = 1; i < nxn - 1; i++)
-    for (register int j = 1; j < nyn - 1; j++)
-      for (register int k = 1; k < nzn - 1; k++) {
+  for (int i = 1; i < nxn - 1; i++)
+    for (int j = 1; j < nyn - 1; j++)
+      for (int k = 1; k < nzn - 1; k++) {
         // curl - X
         compZDY =
             .25 * (vecFieldZC[i][j][k] - vecFieldZC[i][j - 1][k]) * invdy +
@@ -535,9 +535,9 @@ void curlN2C(FPfield ***curlXC, FPfield ***curlYC, FPfield ***curlZC,
   FPfield compXDZ, compZDX;
   FPfield compYDX, compXDY;
 
-  for (register int i = 1; i < nxc - 1; i++)
-    for (register int j = 1; j < nyc - 1; j++)
-      for (register int k = 1; k < nzc - 1; k++) {
+  for (int i = 1; i < nxc - 1; i++)
+    for (int j = 1; j < nyc - 1; j++)
+      for (int k = 1; k < nzc - 1; k++) {
         // curl - X
         compZDY =
             .25 * (vecFieldZN[i][j + 1][k] - vecFieldZN[i][j][k]) * invdy +
@@ -619,9 +619,9 @@ void lapN2N(FPfield ***lapN, FPfield ***scFieldN, grid *grd) {
   FPfield invdy = grd->invdy;
   FPfield invdz = grd->invdz;
 
-  for (register int i = 1; i < nxn - 1; i++)
-    for (register int j = 1; j < nyn - 1; j++)
-      for (register int k = 1; k < nzn - 1; k++)
+  for (int i = 1; i < nxn - 1; i++)
+    for (int j = 1; j < nyn - 1; j++)
+      for (int k = 1; k < nzn - 1; k++)
         lapN[i][j][k] = (scFieldN[i - 1][j][k] - 2 * scFieldN[i][j][k] +
                          scFieldN[i + 1][j][k]) *
                             invdx * invdx +
@@ -646,9 +646,9 @@ void lapC2C(FPfield ***lapC, FPfield ***scFieldC, grid *grd) {
   FPfield invdy = grd->invdy;
   FPfield invdz = grd->invdz;
 
-  for (register int i = 1; i < nxc - 1; i++)
-    for (register int j = 1; j < nyc - 1; j++)
-      for (register int k = 1; k < nzc - 1; k++)
+  for (int i = 1; i < nxc - 1; i++)
+    for (int j = 1; j < nyc - 1; j++)
+      for (int k = 1; k < nzc - 1; k++)
         lapC[i][j][k] = (scFieldC[i - 1][j][k] - 2 * scFieldC[i][j][k] +
                          scFieldC[i + 1][j][k]) *
                             invdx * invdx +

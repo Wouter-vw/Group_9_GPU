@@ -120,9 +120,9 @@ void setZeroDensities(struct interpDensNet* idn, struct interpDensSpecies* ids, 
 void sumOverSpecies(struct interpDensNet* idn, struct interpDensSpecies* ids, struct grid* grd, int ns)
 {
     for (int is=0; is<ns; is++)
-        for (register int i=0; i <grd->nxn; i++)
-            for (register int j=0; j <grd->nyn; j++)
-                for (register int k=0; k <grd->nzn; k++){
+        for (int i=0; i <grd->nxn; i++)
+            for (int j=0; j <grd->nyn; j++)
+                for (int k=0; k <grd->nzn; k++){
                     
                     // density
                     idn->rhon[i][j][k]     += ids[is].rhon[i][j][k];

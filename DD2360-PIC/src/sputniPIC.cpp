@@ -32,6 +32,7 @@
 // Read and output operations
 #include <fstream>
 #include <optional>
+#include <memory>
 
 #include "RW_IO.h"
 

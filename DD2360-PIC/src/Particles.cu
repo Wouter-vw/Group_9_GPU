@@ -508,7 +508,7 @@ void interpP2G(struct particles* part, struct interpDensSpecies* ids,
   // index of the cell
   int ix, iy, iz;
 
-  for (register long long i = 0; i < part->nop; i++) {
+  for (long long i = 0; i < part->nop; i++) {
     // determine cell: can we change to int()? is it faster?
     ix = 2 + int(floor((part->data[i].x - grd->xStart) * grd->invdx));
     iy = 2 + int(floor((part->data[i].y - grd->yStart) * grd->invdy));
