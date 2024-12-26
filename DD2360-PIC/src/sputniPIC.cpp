@@ -6,6 +6,7 @@
 
 // Precision: fix precision for different quantities
 #include "PrecisionTypes.h"
+#include "Basic.h"
 // Simulation Parameter - structure
 #include "Parameters.h"
 // Grid structure
@@ -35,11 +36,9 @@
 #include "RW_IO.h"
 
 struct SimulationResult {
-  Particle *data;
+  std::unique_ptr<Particle[]> data;
   int size;
   double elaps;
-
-  ~SimulationResult() { delete[] data; }
 };
 
 SimulationResult runSimulation(parameters &param, bool useGPU) {
@@ -125,7 +124,7 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
     data[i] = part->data[i];
   }
   SimulationResult res;
-  res.data = data;
+  res.data = std::unique_ptr<Particle[]>(data);
   res.size = part->nop;
 
   /// Release the resources
@@ -163,9 +162,8 @@ int main(int argc, char **argv) {
   printParameters(&param);
   saveParameters(&param);
 
-  bool runCpu = false;
+  bool runCpu = true;
   bool runGpu = true;
-
   auto oCpuResults = std::optional<SimulationResult>{};
   auto oGpuResults = std::optional<SimulationResult>{};
   if (runCpu) {
@@ -177,14 +175,13 @@ int main(int argc, char **argv) {
     oGpuResults = std::optional<SimulationResult>{runSimulation(param, true)};
   }
 
-  double maxDelta = 0.0, meanDelta = 0.0;
-
   if (runCpu && runGpu) {
+    double maxDelta = 0.0, meanDelta = 0.0;
     // Open a file to write delta values
     std::ofstream deltaFile("delta_values.txt");
 
-    SimulationResult cpuResults = oCpuResults.value();
-    SimulationResult gpuResults = oGpuResults.value();
+    SimulationResult &cpuResults = oCpuResults.value();
+    SimulationResult &gpuResults = oGpuResults.value();
 
     for (int i = 0; i < gpuResults.size; i++) {
       auto cpuVec = Vec3<FPpart>(cpuResults.data[i].x, cpuResults.data[i].y,
