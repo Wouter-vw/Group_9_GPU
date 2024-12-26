@@ -12,7 +12,13 @@ class Vec3 {
   T x, y, z;
   Vec3() : x(0), y(0), z(0) {}
   Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
+
+  Vec3 operator-(const Vec3<T> &v) const;
+  Vec3 operator+(const Vec3<T> &v) const;
 };
+
+template <typename T>
+Vec3<T> abs(Vec3<T>);
 
 /** method to calculate the parallel dot product with vect1, vect2 having the
  * ghost cells*/

@@ -30,6 +30,7 @@
 #include "Timing.h"
 // Read and output operations
 #include <fstream>
+#include <optional>
 
 #include "RW_IO.h"
 
@@ -162,39 +163,52 @@ int main(int argc, char **argv) {
   printParameters(&param);
   saveParameters(&param);
 
-  // Set-up the grid information
-  std::cout << "running CPU simulation" << std::endl;
-  auto cpuResults = runSimulation(param, false);
-  std::cout << "running GPU simulation" << std::endl;
-  auto gpuResults = runSimulation(param, true);
+  bool runCpu = false;
+  bool runGpu = true;
+
+  auto oCpuResults = std::optional<SimulationResult>{};
+  auto oGpuResults = std::optional<SimulationResult>{};
+  if (runCpu) {
+    std::cout << "running CPU simulation" << std::endl;
+    oCpuResults = std::optional<SimulationResult>{runSimulation(param, false)};
+  }
+  if (runGpu) {
+    std::cout << "running GPU simulation" << std::endl;
+    oGpuResults = std::optional<SimulationResult>{runSimulation(param, true)};
+  }
 
   double maxDelta = 0.0, meanDelta = 0.0;
 
-  // Open a file to write delta values
-  std::ofstream deltaFile("delta_values.txt");
+  if (runCpu && runGpu) {
+    // Open a file to write delta values
+    std::ofstream deltaFile("delta_values.txt");
 
-  for (int i = 0; i < gpuResults.size; i++) {
-    auto gpuX = gpuResults.data[i].x;
-    auto gpuY = gpuResults.data[i].y;
-    auto gpuZ = gpuResults.data[i].z;
-    auto cpuX = cpuResults.data[i].x;
-    auto cpuY = cpuResults.data[i].y;
-    auto cpuZ = cpuResults.data[i].z;
+    SimulationResult cpuResults = oCpuResults.value();
+    SimulationResult gpuResults = oGpuResults.value();
 
-    auto deltaX = abs(gpuX - cpuX) / abs(max(gpuX, cpuX));
-    auto deltaY = abs(gpuY - cpuY) / abs(max(gpuY, cpuY));
-    auto deltaZ = abs(gpuZ - cpuZ) / abs(max(gpuZ, cpuZ));
-    double delta = max(deltaX, max(deltaY, deltaZ));
-    meanDelta += delta;
-    maxDelta = max(delta, maxDelta);
+    for (int i = 0; i < gpuResults.size; i++) {
+      auto cpuVec = Vec3<FPpart>(cpuResults.data[i].x, cpuResults.data[i].y,
+                                 cpuResults.data[i].z);
+      auto gpuVec = Vec3<FPpart>(gpuResults.data[i].x, gpuResults.data[i].y,
+                                 gpuResults.data[i].z);
+      auto diff = gpuVec - cpuVec;
+      auto sums = abs(gpuVec) + abs(cpuVec);
 
-    // Write the delta value to the file
-    deltaFile << delta << std::endl;
+      auto deltaX = abs(diff.x) / sums.x;
+      auto deltaY = abs(diff.y) / sums.y;
+      auto deltaZ = abs(diff.z) / sums.z;
+      double delta = max(deltaX, max(deltaY, deltaZ));
+      meanDelta += delta;
+      maxDelta = max(delta, maxDelta);
+
+      // Write the delta value to the file
+      deltaFile << delta << std::endl;
+    }
+    meanDelta /= gpuResults.size;
+
+    // Close the file
+    deltaFile.close();
+    std::cout << "Max delta: " << maxDelta << ", Mean delta: " << meanDelta
+              << std::endl;
   }
-  meanDelta /= gpuResults.size;
-
-  // Close the file
-  deltaFile.close();
-  std::cout << "Max delta: " << maxDelta << ", Mean delta: " << meanDelta
-            << std::endl;
 }

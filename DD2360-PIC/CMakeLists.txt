@@ -4,16 +4,18 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CUDA_ARCHITECTURES 75)  # Adjust for your GPU
 
 # Project name and language (just CUDA since we're compiling everything with it)
-project(sputniPIC LANGUAGES CUDA)
+project(sputniPIC LANGUAGES CUDA CXX)
 
 # Set CUDA standard to match C++11
-set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Optimization flags
 if(MSVC)
     set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -O0")
-    set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O2")
+    set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
 else()
     set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -O0")
     set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
