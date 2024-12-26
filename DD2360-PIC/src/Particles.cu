@@ -248,6 +248,7 @@ int mover_PC(struct particles* part, struct EMfield* field, struct grid* grd,
 __global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
                                 struct grid* grd, struct parameters* param) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i >= part->nop) return;
 
   FPpart dt_sub_cycling = (FPpart)param->dt / ((double)part->n_sub_cycles);
   FPpart dto2 = .5 * dt_sub_cycling, qomdt2 = part->qom * dto2 / param->c;
@@ -265,7 +266,7 @@ __global__ void mover_PC_kernel(struct particles* part, struct EMfield* field,
   // intermediate particle position and velocity
   FPpart xptilde, yptilde, zptilde, uptilde, vptilde, wptilde;
 
-  if (i < part->nop) {
+  for (int i_sub = 0; i_sub < part->n_sub_cycles; i_sub++) {
     xptilde = part->data[i].x;
     yptilde = part->data[i].y;
     zptilde = part->data[i].z;
@@ -475,11 +476,9 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   int threadsPerBlock = 256;
   int blocksPerGrid = (part->nop + threadsPerBlock - 1) / threadsPerBlock;
 
-  for (int i_sub = 0; i_sub < part->n_sub_cycles; i_sub++) {
-    mover_PC_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_part, d_field, d_grd,
-                                                        d_param);
-    cudaDeviceSynchronize();
-  }
+  mover_PC_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_part, d_field, d_grd,
+                                                      d_param);
+  cudaDeviceSynchronize();
 
   // 8. Copy results back to host
   cudaMemcpy(part->data, d_data, nop * sizeof(Particle),
