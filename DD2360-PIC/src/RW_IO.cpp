@@ -387,13 +387,13 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
     for (int k=1; k < nzn-2; k++)
       for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
-            Ex = field->electricField[i][j][k].x;
+            Ex = field->Ex[i][j][k];
             if (fabs(Ex) < 1E-8)
                 Ex = 0.0;
-            Ey = field->electricField[i][j][k].y;
+            Ey = field->Ey[i][j][k];
             if (fabs(Ey) < 1E-8)
                 Ey = 0.0;
-            Ez = field->electricField[i][j][k].z;
+            Ez = field->Ez[i][j][k];
             if (fabs(Ez) < 1E-8)
                 Ez = 0.0;
             my_fileE << Ex << " " << Ey <<  " " << Ez <<  std::endl;
@@ -422,13 +422,13 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
     for (int k=1; k < nzn-2; k++)
        for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
-            Bx = field->magneticField[i][j][k].x;
+            Bx = field->Bxn[i][j][k];
             if (fabs(Bx) < 1E-8)
                 Bx = 0.0;
-            By = field->magneticField[i][j][k].y;
+            By = field->Byn[i][j][k];
             if (fabs(By) < 1E-8)
                 By = 0.0;
-            Bz = field->magneticField[i][j][k].z;
+            Bz = field->Bzn[i][j][k];
             if (fabs(Bz) < 1E-8)
                 Bz = 0.0;
             my_file2 << Bx << " " << By  <<  " " << Bz <<  std::endl;

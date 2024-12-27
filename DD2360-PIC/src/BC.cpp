@@ -16,8 +16,8 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 scalarN[0][j][k] = scalarN[grd->nxn-3][j][k];
                 scalarN[grd->nxn-1][j][k] = scalarN[2][j][k];
             }
@@ -25,8 +25,8 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 
                 // rhon
                 scalarN[i][0][k] = scalarN[i][grd->nyn-3][k];
@@ -36,8 +36,8 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 
                 // rhon
                 scalarN[i][j][0] = scalarN[i][j][grd->nzn-3];
@@ -53,7 +53,7 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // X-EDGE
     if (param->PERIODICY==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nxn - 1); i++){
+        for(register int i=1; i < (grd->nxn - 1); i++){
             scalarN[i][grd->nyn-1][grd->nzn-1] = scalarN[i][2][2];
             scalarN[i][0][0]       = scalarN[i][grd->nyn-3][grd->nzn-3];
             scalarN[i][0][grd->nzn-1]    = scalarN[i][grd->nyn-3][2];
@@ -63,7 +63,7 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // Y-EDGE
     if (param->PERIODICX==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nyn - 1); i++){
+        for(register int i=1; i < (grd->nyn - 1); i++){
             scalarN[grd->nxn-1][i][grd->nzn-1] = scalarN[2][i][2];
             scalarN[0][i][0]       =  scalarN[grd->nxn-3][i][grd->nzn-3];
             scalarN[0][i][grd->nzn-1]   = scalarN[grd->nxn-3][i][2];
@@ -73,7 +73,7 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // Z-EDGE
     if (param->PERIODICX==true || param->PERIODICY== true){
-        for(int i=1; i < (grd->nzn - 1); i++){
+        for(register int i=1; i < (grd->nzn - 1); i++){
             scalarN[grd->nxn-1][grd->nyn-1][i] = scalarN[2][2][i];
             scalarN[0][0][i]       = scalarN[grd->nxn-3][grd->nyn-3][i];
             scalarN[grd->nxn-1][0][i]  = scalarN[2][grd->nyn-3][i];
@@ -99,8 +99,8 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     // FACE NON PERIODIC
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 scalarN[0][j][k] = scalarN[1][j][k];
                 scalarN[grd->nxn-1][j][k] = scalarN[grd->nxn-2][j][k];
             }
@@ -108,8 +108,8 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 scalarN[i][0][k] = scalarN[i][1][k] ;
                 scalarN[i][grd->nyn-1][k] = scalarN[i][grd->nyn-2][k];
             }
@@ -117,8 +117,8 @@ void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 scalarN[i][j][0] = scalarN[i][j][1] ;
                 scalarN[i][j][grd->nzn-1] = scalarN[i][j][grd->nzn-2];
             }
@@ -137,8 +137,8 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 scalarN[0][j][k] = scalarN[grd->nxn-3][j][k];
                 scalarN[grd->nxn-1][j][k] = scalarN[2][j][k];
             }
@@ -146,8 +146,8 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 
                 // rhon
                 scalarN[i][0][k] = scalarN[i][grd->nyn-3][k];
@@ -157,8 +157,8 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 
                 // rhon
                 scalarN[i][j][0] = scalarN[i][j][grd->nzn-3];
@@ -174,7 +174,7 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // X-EDGE
     if (param->PERIODICY==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nxn - 1); i++){
+        for(register int i=1; i < (grd->nxn - 1); i++){
             scalarN[i][grd->nyn-1][grd->nzn-1] = scalarN[i][2][2];
             scalarN[i][0][0]       = scalarN[i][grd->nyn-3][grd->nzn-3];
             scalarN[i][0][grd->nzn-1]    = scalarN[i][grd->nyn-3][2];
@@ -184,7 +184,7 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Y-EDGE
     if (param->PERIODICX==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nyn - 1); i++){
+        for(register int i=1; i < (grd->nyn - 1); i++){
             scalarN[grd->nxn-1][i][grd->nzn-1] = scalarN[2][i][2];
             scalarN[0][i][0]       =  scalarN[grd->nxn-3][i][grd->nzn-3];
             scalarN[0][i][grd->nzn-1]   = scalarN[grd->nxn-3][i][2];
@@ -194,7 +194,7 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Z-EDGE
     if (param->PERIODICX==true || param->PERIODICY== true){
-        for(int i=1; i < (grd->nzn - 1); i++){
+        for(register int i=1; i < (grd->nzn - 1); i++){
             scalarN[grd->nxn-1][grd->nyn-1][i] = scalarN[2][2][i];
             scalarN[0][0][i]       = scalarN[grd->nxn-3][grd->nyn-3][i];
             scalarN[grd->nxn-1][0][i]  = scalarN[2][grd->nyn-3][i];
@@ -220,8 +220,8 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     // FACE NON PERIODIC
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 scalarN[0][j][k] = scalarN[1][j][k];
                 scalarN[grd->nxn-1][j][k] = scalarN[grd->nxn-2][j][k];
             }
@@ -229,8 +229,8 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 scalarN[i][0][k] = scalarN[i][1][k] ;
                 scalarN[i][grd->nyn-1][k] = scalarN[i][grd->nyn-2][k];
             }
@@ -238,8 +238,8 @@ void applyBCscalarFieldN(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 scalarN[i][j][0] = scalarN[i][j][1] ;
                 scalarN[i][j][grd->nzn-1] = scalarN[i][j][grd->nzn-2];
             }
@@ -262,8 +262,8 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 scalarN[0][j][k] = scalarN[grd->nxn-3][j][k];
                 scalarN[grd->nxn-1][j][k] = scalarN[2][j][k];
             }
@@ -271,8 +271,8 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 
                 // rhon
                 scalarN[i][0][k] = scalarN[i][grd->nyn-3][k];
@@ -282,8 +282,8 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 
                 // rhon
                 scalarN[i][j][0] = scalarN[i][j][grd->nzn-3];
@@ -299,7 +299,7 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // X-EDGE
     if (param->PERIODICY==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nxn - 1); i++){
+        for(register int i=1; i < (grd->nxn - 1); i++){
             scalarN[i][grd->nyn-1][grd->nzn-1] = scalarN[i][2][2];
             scalarN[i][0][0]       = scalarN[i][grd->nyn-3][grd->nzn-3];
             scalarN[i][0][grd->nzn-1]    = scalarN[i][grd->nyn-3][2];
@@ -309,7 +309,7 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Y-EDGE
     if (param->PERIODICX==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nyn - 1); i++){
+        for(register int i=1; i < (grd->nyn - 1); i++){
             scalarN[grd->nxn-1][i][grd->nzn-1] = scalarN[2][i][2];
             scalarN[0][i][0]       =  scalarN[grd->nxn-3][i][grd->nzn-3];
             scalarN[0][i][grd->nzn-1]   = scalarN[grd->nxn-3][i][2];
@@ -319,7 +319,7 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Z-EDGE
     if (param->PERIODICX==true || param->PERIODICY== true){
-        for(int i=1; i < (grd->nzn - 1); i++){
+        for(register int i=1; i < (grd->nzn - 1); i++){
             scalarN[grd->nxn-1][grd->nyn-1][i] = scalarN[2][2][i];
             scalarN[0][0][i]       = scalarN[grd->nxn-3][grd->nyn-3][i];
             scalarN[grd->nxn-1][0][i]  = scalarN[2][grd->nyn-3][i];
@@ -345,8 +345,8 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     // FACE NON PERIODIC
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 scalarN[0][j][k] = 0.0;
                 scalarN[grd->nxn-1][j][k] = 0.0;
             }
@@ -354,8 +354,8 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 scalarN[i][0][k] = 0.0 ;
                 scalarN[i][grd->nyn-1][k] = 0.0;
             }
@@ -363,8 +363,8 @@ void applyBCscalarFieldNzero(FPfield*** scalarN, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 scalarN[i][j][0] = 0.0 ;
                 scalarN[i][j][grd->nzn-1] = 0.0;
             }
@@ -389,8 +389,8 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 // rhon
                 ids->rhon[1][j][k] += ids->rhon[grd->nxn-2][j][k];
                 ids->rhon[grd->nxn-2][j][k] = ids->rhon[1][j][k]; // second is = not +=
@@ -431,8 +431,8 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 
                 // rhon
                 ids->rhon[i][1][k] += ids->rhon[i][grd->nyn-2][k];
@@ -475,8 +475,8 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 
                 // rhon
                 ids->rhon[i][j][1] += ids->rhon[i][j][grd->nzn-2];
@@ -520,8 +520,8 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
     // apply BC if BC are not periodic
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyn-1; j++)
-            for (int k = 1; k < grd->nzn-1; k++){
+        for (register int j = 1; j < grd->nyn-1; j++)
+            for (register int k = 1; k < grd->nzn-1; k++){
                 // rhon
                 ids->rhon[1][j][k] *=2;
                 ids->rhon[grd->nxn-2][j][k] *=2; // second is = not +=
@@ -562,8 +562,8 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int k = 1; k < grd->nzn - 1; k++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int k = 1; k < grd->nzn - 1; k++){
                 
                 // rhon
                 ids->rhon[i][1][k] *=2 ;
@@ -606,8 +606,8 @@ void applyBCids(struct interpDensSpecies* ids, struct grid* grd, struct paramete
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxn - 1; i++)
-            for (int j = 1; j < grd->nyn - 1; j++){
+        for (register int i = 1; i < grd->nxn - 1; i++)
+            for (register int j = 1; j < grd->nyn - 1; j++){
                 
                 // rhon
                 ids->rhon[i][j][1] *=2;
@@ -672,8 +672,8 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyc-1; j++)
-            for (int k = 1; k < grd->nzc-1; k++){
+        for (register int j = 1; j < grd->nyc-1; j++)
+            for (register int k = 1; k < grd->nzc-1; k++){
                 scalarC[0][j][k] = scalarC[grd->nxc-2][j][k];
                 scalarC[grd->nxc-1][j][k] = scalarC[1][j][k];
             }
@@ -681,8 +681,8 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int k = 1; k < grd->nzc - 1; k++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int k = 1; k < grd->nzc - 1; k++){
                 
                 // rhon
                 scalarC[i][0][k] = scalarC[i][grd->nyc-2][k];
@@ -692,8 +692,8 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int j = 1; j < grd->nyc - 1; j++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int j = 1; j < grd->nyc - 1; j++){
                 
                 // rhon
                 scalarC[i][j][0] = scalarC[i][j][grd->nzc-2];
@@ -709,7 +709,7 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // X-EDGE
     if (param->PERIODICY==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nxc - 1); i++){
+        for(register int i=1; i < (grd->nxc - 1); i++){
             scalarC[i][grd->nyc-1][grd->nzc-1] = scalarC[i][1][1];
             scalarC[i][0][0]       = scalarC[i][grd->nyc-2][grd->nzc-2];
             scalarC[i][0][grd->nzc-1]    = scalarC[i][grd->nyc-2][1];
@@ -719,7 +719,7 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // Y-EDGE
     if (param->PERIODICX==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nyn - 1); i++){
+        for(register int i=1; i < (grd->nyn - 1); i++){
             scalarC[grd->nxc-1][i][grd->nzc-1] = scalarC[1][i][1];
             scalarC[0][i][0]       =  scalarC[grd->nxc-2][i][grd->nzc-2];
             scalarC[0][i][grd->nzc-1]   = scalarC[grd->nxc-2][i][1];
@@ -729,7 +729,7 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // Z-EDGE
     if (param->PERIODICX==true || param->PERIODICY== true){
-        for(int i=1; i < (grd->nzc - 1); i++){
+        for(register int i=1; i < (grd->nzc - 1); i++){
             scalarC[grd->nxc-1][grd->nyc-1][i] = scalarC[1][1][i];
             scalarC[0][0][i]       = scalarC[grd->nxc-2][grd->nyc-2][i];
             scalarC[grd->nxc-1][0][i]  = scalarC[1][grd->nyc-2][i];
@@ -755,8 +755,8 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     // FACE NON PERIODIC: PUT Neuman condition absence of something else
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyc-1; j++)
-            for (int k = 1; k < grd->nzc-1; k++){
+        for (register int j = 1; j < grd->nyc-1; j++)
+            for (register int k = 1; k < grd->nzc-1; k++){
                 scalarC[0][j][k] = scalarC[1][j][k];
                 scalarC[grd->nxc-1][j][k] = scalarC[grd->nxc-2][j][k];
             }
@@ -764,8 +764,8 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int k = 1; k < grd->nzc - 1; k++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int k = 1; k < grd->nzc - 1; k++){
                 scalarC[i][0][k] = scalarC[i][1][k] ;
                 scalarC[i][grd->nyc-1][k] = scalarC[i][grd->nyc-2][k];
             }
@@ -773,8 +773,8 @@ void applyBCscalarDensC(FPinterp*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int j = 1; j < grd->nyc - 1; j++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int j = 1; j < grd->nyc - 1; j++){
                 scalarC[i][j][0] = scalarC[i][j][1] ;
                 scalarC[i][j][grd->nzc-1] = scalarC[i][j][grd->nzc-2];
             }
@@ -794,8 +794,8 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyc-1; j++)
-            for (int k = 1; k < grd->nzc-1; k++){
+        for (register int j = 1; j < grd->nyc-1; j++)
+            for (register int k = 1; k < grd->nzc-1; k++){
                 scalarC[0][j][k] = scalarC[grd->nxc-2][j][k];
                 scalarC[grd->nxc-1][j][k] = scalarC[1][j][k];
             }
@@ -803,8 +803,8 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int k = 1; k < grd->nzc - 1; k++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int k = 1; k < grd->nzc - 1; k++){
                 
                 // rhon
                 scalarC[i][0][k] = scalarC[i][grd->nyc-2][k];
@@ -814,8 +814,8 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int j = 1; j < grd->nyc - 1; j++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int j = 1; j < grd->nyc - 1; j++){
                 
                 // rhon
                 scalarC[i][j][0] = scalarC[i][j][grd->nzc-2];
@@ -831,7 +831,7 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // X-EDGE
     if (param->PERIODICY==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nxc - 1); i++){
+        for(register int i=1; i < (grd->nxc - 1); i++){
             scalarC[i][grd->nyc-1][grd->nzc-1] = scalarC[i][1][1];
             scalarC[i][0][0]       = scalarC[i][grd->nyc-2][grd->nzc-2];
             scalarC[i][0][grd->nzc-1]    = scalarC[i][grd->nyc-2][1];
@@ -841,7 +841,7 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Y-EDGE
     if (param->PERIODICX==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nyn - 1); i++){
+        for(register int i=1; i < (grd->nyn - 1); i++){
             scalarC[grd->nxc-1][i][grd->nzc-1] = scalarC[1][i][1];
             scalarC[0][i][0]       =  scalarC[grd->nxc-2][i][grd->nzc-2];
             scalarC[0][i][grd->nzc-1]   = scalarC[grd->nxc-2][i][1];
@@ -851,7 +851,7 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Z-EDGE
     if (param->PERIODICX==true || param->PERIODICY== true){
-        for(int i=1; i < (grd->nzc - 1); i++){
+        for(register int i=1; i < (grd->nzc - 1); i++){
             scalarC[grd->nxc-1][grd->nyc-1][i] = scalarC[1][1][i];
             scalarC[0][0][i]       = scalarC[grd->nxc-2][grd->nyc-2][i];
             scalarC[grd->nxc-1][0][i]  = scalarC[1][grd->nyc-2][i];
@@ -877,8 +877,8 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     // FACE NON PERIODIC: PUT Neuman condition absence of something else
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyc-1; j++)
-            for (int k = 1; k < grd->nzc-1; k++){
+        for (register int j = 1; j < grd->nyc-1; j++)
+            for (register int k = 1; k < grd->nzc-1; k++){
                 scalarC[0][j][k] = scalarC[1][j][k];
                 scalarC[grd->nxc-1][j][k] = scalarC[grd->nxc-2][j][k];
             }
@@ -886,8 +886,8 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int k = 1; k < grd->nzc - 1; k++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int k = 1; k < grd->nzc - 1; k++){
                 scalarC[i][0][k] = scalarC[i][1][k] ;
                 scalarC[i][grd->nyc-1][k] = scalarC[i][grd->nyc-2][k];
             }
@@ -895,8 +895,8 @@ void applyBCscalarFieldC(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int j = 1; j < grd->nyc - 1; j++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int j = 1; j < grd->nyc - 1; j++){
                 scalarC[i][j][0] = scalarC[i][j][1] ;
                 scalarC[i][j][grd->nzc-1] = scalarC[i][j][grd->nzc-2];
             }
@@ -919,8 +919,8 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // X direction
     if (param->PERIODICX==true){
-        for (int j = 1; j < grd->nyc-1; j++)
-            for (int k = 1; k < grd->nzc-1; k++){
+        for (register int j = 1; j < grd->nyc-1; j++)
+            for (register int k = 1; k < grd->nzc-1; k++){
                 scalarC[0][j][k] = scalarC[grd->nxc-2][j][k];
                 scalarC[grd->nxc-1][j][k] = scalarC[1][j][k];
             }
@@ -928,8 +928,8 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==true){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int k = 1; k < grd->nzc - 1; k++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int k = 1; k < grd->nzc - 1; k++){
                 
                 // rhon
                 scalarC[i][0][k] = scalarC[i][grd->nyc-2][k];
@@ -939,8 +939,8 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==true){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int j = 1; j < grd->nyc - 1; j++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int j = 1; j < grd->nyc - 1; j++){
                 
                 // rhon
                 scalarC[i][j][0] = scalarC[i][j][grd->nzc-2];
@@ -956,7 +956,7 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // X-EDGE
     if (param->PERIODICY==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nxc - 1); i++){
+        for(register int i=1; i < (grd->nxc - 1); i++){
             scalarC[i][grd->nyc-1][grd->nzc-1] = scalarC[i][1][1];
             scalarC[i][0][0]       = scalarC[i][grd->nyc-2][grd->nzc-2];
             scalarC[i][0][grd->nzc-1]    = scalarC[i][grd->nyc-2][1];
@@ -966,7 +966,7 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Y-EDGE
     if (param->PERIODICX==true || param->PERIODICZ== true){
-        for(int i=1; i < (grd->nyn - 1); i++){
+        for(register int i=1; i < (grd->nyn - 1); i++){
             scalarC[grd->nxc-1][i][grd->nzc-1] = scalarC[1][i][1];
             scalarC[0][i][0]       =  scalarC[grd->nxc-2][i][grd->nzc-2];
             scalarC[0][i][grd->nzc-1]   = scalarC[grd->nxc-2][i][1];
@@ -976,7 +976,7 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Z-EDGE
     if (param->PERIODICX==true || param->PERIODICY== true){
-        for(int i=1; i < (grd->nzc - 1); i++){
+        for(register int i=1; i < (grd->nzc - 1); i++){
             scalarC[grd->nxc-1][grd->nyc-1][i] = scalarC[1][1][i];
             scalarC[0][0][i]       = scalarC[grd->nxc-2][grd->nyc-2][i];
             scalarC[grd->nxc-1][0][i]  = scalarC[1][grd->nyc-2][i];
@@ -1002,8 +1002,8 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     // FACE NON PERIODIC: PUT Neuman condition absence of something else
     // X direction
     if (param->PERIODICX==false){
-        for (int j = 1; j < grd->nyc-1; j++)
-            for (int k = 1; k < grd->nzc-1; k++){
+        for (register int j = 1; j < grd->nyc-1; j++)
+            for (register int k = 1; k < grd->nzc-1; k++){
                 scalarC[0][j][k] = 0.0;
                 scalarC[grd->nxc-1][j][k] = 0.0;
             }
@@ -1011,8 +1011,8 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Y direction
     if (param->PERIODICY==false){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int k = 1; k < grd->nzc - 1; k++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int k = 1; k < grd->nzc - 1; k++){
                 scalarC[i][0][k] = 0.0;
                 scalarC[i][grd->nyc-1][k] = 0.0;
             }
@@ -1020,8 +1020,8 @@ void applyBCscalarFieldCzero(FPfield*** scalarC, grid* grd, parameters* param){
     
     // Periodic boundary conditions in Z direction
     if (param->PERIODICZ==false){
-        for (int i = 1; i < grd->nxc - 1; i++)
-            for (int j = 1; j < grd->nyc - 1; j++){
+        for (register int i = 1; i < grd->nxc - 1; i++)
+            for (register int j = 1; j < grd->nyc - 1; j++){
                 scalarC[i][j][0] = 0.0;
                 scalarC[i][j][grd->nzc-1] = 0.0;
             }
