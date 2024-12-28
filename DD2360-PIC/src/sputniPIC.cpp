@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
   printParameters(&param);
   saveParameters(&param);
 
-  bool runCpu = true;
+  bool runCpu = false;
   bool runGpu = true;
   auto oCpuResults = std::optional<SimulationResult>{};
   auto oGpuResults = std::optional<SimulationResult>{};

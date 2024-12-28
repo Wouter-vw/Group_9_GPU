@@ -1234,15 +1234,7 @@ __global__ void interpP2G_kernel(
 //             s_pzz[shared_idx]);
 //         }
 // }
-#define CUDA_CHECK(call)                                      \
-  do {                                                        \
-    cudaError_t err = call;                                   \
-    if (err != cudaSuccess) {                                 \
-      printf("CUDA error at %s:%d: %s\n", __FILE__, __LINE__, \
-             cudaGetErrorString(err));                        \
-      exit(1);                                                \
-    }                                                         \
-  } while (0)
+
 // This is Async V2
 void interpP2G_GPU(struct particles* part, struct interpDensSpecies* ids,
                    struct grid* grd) {
@@ -1252,21 +1244,9 @@ void interpP2G_GPU(struct particles* part, struct interpDensSpecies* ids,
   int nzn = grd->nzn;
   int nop = part->nop;
 
-  // Flatten XN, YN, ZN, rhon, J and p -> Free at the end
-  FPpart* rhon_flat = ids->rhon_flat;
-  FPpart* Jx_flat = ids->Jx_flat;
-  FPpart* Jy_flat = ids->Jy_flat;
-  FPpart* Jz_flat = ids->Jz_flat;
-  FPpart* pxx_flat = ids->pxx_flat;
-  FPpart* pxy_flat = ids->pxy_flat;
-  FPpart* pxz_flat = ids->pxz_flat;
-  FPpart* pyy_flat = ids->pyy_flat;
-  FPpart* pyz_flat = ids->pyz_flat;
-  FPpart* pzz_flat = ids->pzz_flat;
-
   constexpr int nStreams = 10;
   cudaStream_t stream[nStreams];
-  for (int i = 0; i < nStreams; ++i) CUDA_CHECK(cudaStreamCreate(&stream[i]));
+  for (auto & i : stream) cudaStreamCreate(&i);
 
   // Device pointers -> Free at the end
   Particle* d_data;
@@ -1277,29 +1257,29 @@ void interpP2G_GPU(struct particles* part, struct interpDensSpecies* ids,
       *d_pzz_flat;
 
   // Allocate memory on the device
-  CUDA_CHECK(cudaMalloc(&d_data, nop * sizeof(Particle)));
-  CUDA_CHECK(cudaMalloc(&d_weight, 8 * nop * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_nodes, nxn * nyn * nzn * sizeof(Vec3<FPfield>)));
-  CUDA_CHECK(cudaMalloc(&d_rhon_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_Jx_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_Jy_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_Jz_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_pxx_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_pxy_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_pxz_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_pyy_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_pyz_flat, nxn * nyn * nzn * sizeof(FPpart)));
-  CUDA_CHECK(cudaMalloc(&d_pzz_flat, nxn * nyn * nzn * sizeof(FPpart)));
+  cudaMalloc(&d_data, nop * sizeof(Particle));
+  cudaMalloc(&d_weight, 8 * nop * sizeof(FPpart));
+  cudaMalloc(&d_nodes, nxn * nyn * nzn * sizeof(Vec3<FPfield>));
+  cudaMalloc(&d_rhon_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_Jx_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_Jy_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_Jz_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_pxx_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_pxy_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_pxz_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_pyy_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_pyz_flat, nxn * nyn * nzn * sizeof(FPpart));
+  cudaMalloc(&d_pzz_flat, nxn * nyn * nzn * sizeof(FPpart));
 
   int currentStreamSize = nxn * nyn * nzn * sizeof(FPpart);
 
   // Copy data from host to device
 
-  CUDA_CHECK(cudaMemcpyAsync(d_data, part->data, nop * sizeof(Particle),
-                        cudaMemcpyHostToDevice, stream[0]));
-  CUDA_CHECK(cudaMemcpyAsync(d_nodes, grd->nodes_flat,
-                        nxn * nyn * nzn * sizeof(Vec3<FPfield>),
-                        cudaMemcpyHostToDevice, stream[1]));
+  cudaMemcpyAsync(d_data, part->data, nop * sizeof(Particle),
+                  cudaMemcpyHostToDevice, stream[0]);
+  cudaMemcpyAsync(d_nodes, grd->nodes_flat,
+                  nxn * nyn * nzn * sizeof(Vec3<FPfield>),
+                  cudaMemcpyHostToDevice, stream[1]);
 
   for (int i = 0; i < 2; ++i) cudaStreamSynchronize(stream[i]);
 
@@ -1310,26 +1290,25 @@ void interpP2G_GPU(struct particles* part, struct interpDensSpecies* ids,
       d_data, d_nodes, d_weight, grd->invVOL, grd->xStart, grd->yStart,
       grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
 
-  CUDA_CHECK(cudaGetLastError());
-  cudaMemcpyAsync(d_rhon_flat, rhon_flat, currentStreamSize,
+  cudaMemcpyAsync(d_rhon_flat, ids->rhon_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[0]);
-  cudaMemcpyAsync(d_Jx_flat, Jx_flat, currentStreamSize, cudaMemcpyHostToDevice,
-                  stream[1]);
-  cudaMemcpyAsync(d_Jy_flat, Jy_flat, currentStreamSize, cudaMemcpyHostToDevice,
-                  stream[2]);
-  cudaMemcpyAsync(d_Jz_flat, Jz_flat, currentStreamSize, cudaMemcpyHostToDevice,
-                  stream[3]);
-  cudaMemcpyAsync(d_pxx_flat, pxx_flat, currentStreamSize,
+  cudaMemcpyAsync(d_Jx_flat, ids->Jx_flat, currentStreamSize,
+                  cudaMemcpyHostToDevice, stream[1]);
+  cudaMemcpyAsync(d_Jy_flat, ids->Jy_flat, currentStreamSize,
+                  cudaMemcpyHostToDevice, stream[2]);
+  cudaMemcpyAsync(d_Jz_flat, ids->Jz_flat, currentStreamSize,
+                  cudaMemcpyHostToDevice, stream[3]);
+  cudaMemcpyAsync(d_pxx_flat, ids->pxx_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[4]);
-  cudaMemcpyAsync(d_pxy_flat, pxy_flat, currentStreamSize,
+  cudaMemcpyAsync(d_pxy_flat, ids->pxy_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[5]);
-  cudaMemcpyAsync(d_pxz_flat, pxz_flat, currentStreamSize,
+  cudaMemcpyAsync(d_pxz_flat, ids->pxz_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[6]);
-  cudaMemcpyAsync(d_pyy_flat, pyy_flat, currentStreamSize,
+  cudaMemcpyAsync(d_pyy_flat, ids->pyy_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[7]);
-  cudaMemcpyAsync(d_pyz_flat, pyz_flat, currentStreamSize,
+  cudaMemcpyAsync(d_pyz_flat, ids->pyz_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[8]);
-  cudaMemcpyAsync(d_pzz_flat, pzz_flat, currentStreamSize,
+  cudaMemcpyAsync(d_pzz_flat, ids->pzz_flat, currentStreamSize,
                   cudaMemcpyHostToDevice, stream[9]);
 
   for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
@@ -1367,25 +1346,25 @@ void interpP2G_GPU(struct particles* part, struct interpDensSpecies* ids,
 
   for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
 
-  cudaMemcpyAsync(rhon_flat, d_rhon_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->rhon_flat, d_rhon_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[0]);
-  cudaMemcpyAsync(Jx_flat, d_Jx_flat, currentStreamSize, cudaMemcpyDeviceToHost,
-                  stream[1]);
-  cudaMemcpyAsync(Jy_flat, d_Jy_flat, currentStreamSize, cudaMemcpyDeviceToHost,
-                  stream[2]);
-  cudaMemcpyAsync(Jz_flat, d_Jz_flat, currentStreamSize, cudaMemcpyDeviceToHost,
-                  stream[3]);
-  cudaMemcpyAsync(pxx_flat, d_pxx_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->Jx_flat, d_Jx_flat, currentStreamSize,
+                  cudaMemcpyDeviceToHost, stream[1]);
+  cudaMemcpyAsync(ids->Jy_flat, d_Jy_flat, currentStreamSize,
+                  cudaMemcpyDeviceToHost, stream[2]);
+  cudaMemcpyAsync(ids->Jz_flat, d_Jz_flat, currentStreamSize,
+                  cudaMemcpyDeviceToHost, stream[3]);
+  cudaMemcpyAsync(ids->pxx_flat, d_pxx_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[4]);
-  cudaMemcpyAsync(pxy_flat, d_pxy_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->pxy_flat, d_pxy_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[5]);
-  cudaMemcpyAsync(pxz_flat, d_pxz_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->pxz_flat, d_pxz_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[6]);
-  cudaMemcpyAsync(pyy_flat, d_pyy_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->pyy_flat, d_pyy_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[7]);
-  cudaMemcpyAsync(pyz_flat, d_pyz_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->pyz_flat, d_pyz_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[8]);
-  cudaMemcpyAsync(pzz_flat, d_pzz_flat, currentStreamSize,
+  cudaMemcpyAsync(ids->pzz_flat, d_pzz_flat, currentStreamSize,
                   cudaMemcpyDeviceToHost, stream[9]);
 
   for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
