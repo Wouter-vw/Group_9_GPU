@@ -415,23 +415,17 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   int nxn = grd->nxn;
   int nyn = grd->nyn;
   int nzn = grd->nzn;
-  int nop = part->nop;
 
   // 1. Allocate memory for structs on device
-  particles* d_part;
   EMfield* d_field;
   grid* d_grd;
   parameters* d_param;
 
-  cudaMalloc(&d_part, sizeof(particles));
   cudaMalloc(&d_field, sizeof(EMfield));
   cudaMalloc(&d_grd, sizeof(grid));
   cudaMalloc(&d_param, sizeof(parameters));
 
   // 2. Allocate memory for arrays on device
-  Particle* d_data;
-
-  cudaMalloc(&d_data, nop * sizeof(Particle));
 
   // Grid and field arrays
   Vec3<FPpart>* d_nodes_flat;
@@ -443,8 +437,6 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
   cudaMalloc(&d_magneticField_flat, nxn * nyn * nzn * sizeof(Vec3<FPfield>));
 
   // 3. Copy array data to device
-  cudaMemcpy(d_data, part->data, nop * sizeof(Particle),
-             cudaMemcpyHostToDevice);
 
   cudaMemcpy(d_nodes_flat, grd->nodes_flat,
              nxn * nyn * nzn * sizeof(Vec3<FPpart>), cudaMemcpyHostToDevice);
@@ -455,41 +447,55 @@ int mover_PC_GPU(struct particles* part, struct EMfield* field,
              nxn * nyn * nzn * sizeof(Vec3<FPfield>), cudaMemcpyHostToDevice);
 
   // 4. Create temporary structs with device pointers
-  particles temp_part = *part;
   EMfield temp_field = *field;
   grid temp_grd = *grd;
 
   // 5. Update pointers in temporary structs to point to device memory
-  temp_part.data = d_data;
 
   temp_field.electricField_flat = d_electricField_flat;
   temp_field.magneticField_flat = d_magneticField_flat;
   temp_grd.nodes_flat = d_nodes_flat;
 
   // 6. Copy the temporary structs with device pointers to device
-  cudaMemcpy(d_part, &temp_part, sizeof(particles), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, &temp_field, sizeof(EMfield), cudaMemcpyHostToDevice);
   cudaMemcpy(d_grd, &temp_grd, sizeof(grid), cudaMemcpyHostToDevice);
   cudaMemcpy(d_param, param, sizeof(parameters), cudaMemcpyHostToDevice);
 
   // 7. Launch kernel
+
   int threadsPerBlock = 256;
-  int blocksPerGrid = (part->nop + threadsPerBlock - 1) / threadsPerBlock;
+  for (int is = 0; is < param->ns; is++) {
+    auto currPart = &part[is];
 
-  mover_PC_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_part, d_field, d_grd,
-                                                      d_param);
-  cudaDeviceSynchronize();
+    int nop = currPart->nop;
+    particles* d_part;
+    cudaMalloc(&d_part, sizeof(particles));
 
-  // 8. Copy results back to host
-  cudaMemcpy(part->data, d_data, nop * sizeof(Particle),
-             cudaMemcpyDeviceToHost);
+    Particle* d_data;
+    cudaMalloc(&d_data, nop * sizeof(Particle));
+
+    cudaMemcpy(d_data, currPart->data, nop * sizeof(Particle),
+               cudaMemcpyHostToDevice);
+    particles temp_part = *currPart;
+    temp_part.data = d_data;
+    cudaMemcpy(d_part, &temp_part, sizeof(particles), cudaMemcpyHostToDevice);
+
+    int blocksPerGrid = (currPart->nop + threadsPerBlock - 1) / threadsPerBlock;
+    mover_PC_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_part, d_field, d_grd,
+                                                        d_param);
+    cudaDeviceSynchronize();
+
+    // 8. Copy results back to host
+    cudaMemcpy(currPart->data, d_data, nop * sizeof(Particle),
+               cudaMemcpyDeviceToHost);
+    cudaFree(d_data);
+    cudaFree(d_part);
+  }
 
   // 9. Free device memory
-  cudaFree(d_data);
   cudaFree(d_nodes_flat);
   cudaFree(d_electricField_flat);
   cudaFree(d_magneticField_flat);
-  cudaFree(d_part);
   cudaFree(d_field);
   cudaFree(d_grd);
   cudaFree(d_param);

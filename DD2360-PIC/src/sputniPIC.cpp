@@ -91,8 +91,7 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
     // implicit mover
     iMover = cpuSecond();  // start timer for mover
     if (useGPU) {
-      for (int is = 0; is < param.ns; is++)
-        mover_PC_GPU(&part[is], &field, &grd, &param);
+        mover_PC_GPU(part, &field, &grd, &param);
     } else {
       for (int is = 0; is < param.ns; is++)
         mover_PC(&part[is], &field, &grd, &param);
