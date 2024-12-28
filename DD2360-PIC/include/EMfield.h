@@ -8,8 +8,8 @@
 /** structure with field information */
 struct EMfield {
     // field arrays: 4D arrays
-    
-    /* Electric field defined on nodes: last index is component */
+
+  /* Electric field defined on nodes: last index is component */
     // originally Ex, Ey, Ez
     Vec3<FPfield> ***electricField;
     Vec3<FPfield> *electricField_flat;

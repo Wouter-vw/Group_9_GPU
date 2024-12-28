@@ -4,10 +4,9 @@
 #include <iostream>
 
 #include "Alloc.h"
+#include "Basic.h"
 #include "Parameters.h"
 #include "PrecisionTypes.h"
-#include "Basic.h"
-
 
 /** Grid Data */
 struct grid {

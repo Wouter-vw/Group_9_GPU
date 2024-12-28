@@ -73,4 +73,7 @@ int mover_PC_GPU(struct particles *, struct EMfield *, struct grid *,
 /** Interpolation Particle --> Grid: This is for species */
 void interpP2G(struct particles *, struct interpDensSpecies *, struct grid *);
 
+void interpP2G_GPU(struct particles *, struct interpDensSpecies *,
+                   struct grid *);
+
 #endif

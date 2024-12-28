@@ -101,8 +101,7 @@ void sum(FPfield ***vect1, FPfield ***vect2, int nx, int ny) {
 void sum(FPfield ***vect1, FPfield ****vect2, int nx, int ny, int nz, int ns) {
   for (int i = 0; i < nx; i++)
     for (int j = 0; j < ny; j++)
-      for (int k = 0; k < nz; k++)
-        vect1[i][j][k] += vect2[ns][i][j][k];
+      for (int k = 0; k < nz; k++) vect1[i][j][k] += vect2[ns][i][j][k];
 }
 
 /** method to calculate the sum of two vectors vector1 = vector1 + vector2*/
@@ -165,15 +164,13 @@ void scale(FPfield ***vect1, FPfield ***vect2, FPfield alfa, int nx, int ny,
            int nz) {
   for (int i = 0; i < nx; i++)
     for (int j = 0; j < ny; j++)
-      for (int k = 0; k < nz; k++)
-        vect1[i][j][k] = vect2[i][j][k] * alfa;
+      for (int k = 0; k < nz; k++) vect1[i][j][k] = vect2[i][j][k] * alfa;
 }
 
 /** method to calculate the scalar-vector product */
 void scale(FPfield ***vect1, FPfield ***vect2, double alfa, int nx, int ny) {
   for (int i = 0; i < nx; i++)
-    for (int j = 0; j < ny; j++)
-      vect1[i][j][0] = vect2[i][j][0] * alfa;
+    for (int j = 0; j < ny; j++) vect1[i][j][0] = vect2[i][j][0] * alfa;
 }
 
 /** method to calculate the scalar-vector product */
@@ -201,8 +198,7 @@ void addscale(double alfa, double vect1[][2][2], double vect2[][2][2], int nx,
 void addscale(FPfield alfa, FPfield ***vect1, FPfield ***vect2, int nx,
               int ny) {
   for (int i = 0; i < nx; i++)
-    for (int j = 0; j < ny; j++)
-      vect1[i][j][0] += alfa * vect2[i][j][0];
+    for (int j = 0; j < ny; j++) vect1[i][j][0] += alfa * vect2[i][j][0];
 }
 /** method to calculate vector1 = vector1 + alfa*vector2   */
 void addscale(FPfield alfa, FPfield *vect1, FPfield *vect2, int n) {
@@ -211,8 +207,7 @@ void addscale(FPfield alfa, FPfield *vect1, FPfield *vect2, int n) {
 /** method to calculate vector1 = beta*vector1 + alfa*vector2   */
 void addscale(FPfield alfa, FPfield beta, FPfield *vect1, FPfield *vect2,
               int n) {
-  for (int i = 0; i < n; i++)
-    vect1[i] = vect1[i] * beta + alfa * vect2[i];
+  for (int i = 0; i < n; i++) vect1[i] = vect1[i] * beta + alfa * vect2[i];
 }
 /** method to calculate vector1 = beta*vector1 + alfa*vector2 */
 void addscale(FPfield alfa, FPfield beta, FPfield ***vect1, FPfield ***vect2,
@@ -262,8 +257,7 @@ void div(double ***vect1, double alfa, double ***vect2, int nx, int ny,
          int nz) {
   for (int i = 0; i < nx; i++)
     for (int j = 0; j < ny; j++)
-      for (int k = 0; k < nz; k++)
-        vect1[i][j][k] = vect2[i][j][k] / alfa;
+      for (int k = 0; k < nz; k++) vect1[i][j][k] = vect2[i][j][k] / alfa;
 }
 void prod6(double ***vect1, double ***vect2, double ***vect3, double ***vect4,
            double ***vect5, double ***vect6, double ***vect7, int nx, int ny,

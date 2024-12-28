@@ -398,9 +398,9 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
                 Ez = 0.0;
             my_fileE << Ex << " " << Ey <<  " " << Ez <<  std::endl;
         }
-    
+
     my_fileE.close();
-    
+
     filename = "B";
     temp = "./data/" + filename + "_"+ cc.str() ;
     temp += ".vtk";
@@ -415,10 +415,10 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
     my_file2 << "SPACING " << dx << " " << dy << " " << dz << std::endl;
     my_file2 << "POINT_DATA " << (nxn-3)*(nyn-3)*(nzn-3) << std::endl;
     my_file2 << "VECTORS B float" << std::endl;
-    
-    
+
+
     double Bx = 0, By = 0, Bz = 0;
-    
+
     for (int k=1; k < nzn-2; k++)
        for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
@@ -433,9 +433,9 @@ void VTK_Write_Vectors(int cycle, struct grid *grd, struct EMfield* field)
                 Bz = 0.0;
             my_file2 << Bx << " " << By  <<  " " << Bz <<  std::endl;
         }
-    
+
     my_file2.close();
-    
+
 }
 
 void VTK_Write_Scalars(int cycle, struct grid *grd, struct interpDensSpecies* ids, struct interpDensNet* idn)
@@ -448,17 +448,17 @@ void VTK_Write_Scalars(int cycle, struct grid *grd, struct interpDensSpecies* id
     temp = "./data/" + filename + "_"+ cc.str() ;
     temp += ".vtk";
     std::cout << "Opening file: " << temp << std::endl;
-    
+
     // get the number of nodes
     int nxn = grd->nxn;
     int nyn = grd->nyn;
     int nzn = grd->nzn;
-    
+
     // get the grid spacing
     double dx = grd->dx;
     double dy = grd->dy;
     double dz = grd->dz;
-    
+
     std::ofstream my_file(temp.c_str());
     my_file << "# vtk DataFile Version 1.0" << std::endl;
     my_file << "Electron Density - Current Sheet " << std::endl;
@@ -470,15 +470,15 @@ void VTK_Write_Scalars(int cycle, struct grid *grd, struct interpDensSpecies* id
     my_file << "POINT_DATA " << (nxn-3)*(nyn-3)*(nzn-3) << std::endl;
     my_file << "SCALARS rhoe float" << std::endl;
     my_file << "LOOKUP_TABLE default" << std::endl;
-    
+
     for (int k=1; k < nzn-2; k++)
       for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
             my_file << ids[0].rhon[i][j][k] << std::endl;
         }
-    
+
     my_file.close();
-    
+
     filename = "rhoi";
     temp = "./data/" + filename + "_"+ cc.str() ;
     temp += ".vtk";
@@ -494,15 +494,15 @@ void VTK_Write_Scalars(int cycle, struct grid *grd, struct interpDensSpecies* id
     my_file2 << "POINT_DATA " << (nxn-3)*(nyn-3)*(nzn-3) << std::endl;
     my_file2 << "SCALARS rhoi float" << std::endl;
     my_file2 << "LOOKUP_TABLE default" << std::endl;
-    
+
     for (int k=1; k < nzn-2; k++)
       for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
             my_file2 << ids[1].rhon[i][j][k] << std::endl;
         }
-    
+
     my_file2.close();
-    
+
     filename = "rho_net";
     temp = "./data/" + filename + "_"+ cc.str() ;
     temp += ".vtk";
@@ -518,14 +518,14 @@ void VTK_Write_Scalars(int cycle, struct grid *grd, struct interpDensSpecies* id
     my_file1 << "POINT_DATA " << (nxn-3)*(nyn-3)*(nzn-3)  << std::endl;
     my_file1 << "SCALARS rhonet float" << std::endl;
     my_file1 << "LOOKUP_TABLE default" << std::endl;
-    
+
     for (int k=1; k < nzn-2; k++)
       for (int j=1; j < nyn-2; j++)
         for (int i=1; i < nxn-2; i++){
             my_file1 << idn->rhon[i][j][k]  << std::endl;
         }
-    
+
     my_file1.close();
-    
-    
+
+
 }

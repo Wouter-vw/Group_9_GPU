@@ -6,7 +6,6 @@
 
 // Precision: fix precision for different quantities
 #include "PrecisionTypes.h"
-#include "Basic.h"
 // Simulation Parameter - structure
 #include "Parameters.h"
 // Grid structure
@@ -31,8 +30,9 @@
 #include "Timing.h"
 // Read and output operations
 #include <fstream>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <vector>
 
 #include "RW_IO.h"
 
@@ -91,7 +91,7 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
     // implicit mover
     iMover = cpuSecond();  // start timer for mover
     if (useGPU) {
-        mover_PC_GPU(part, &field, &grd, &param);
+      mover_PC_GPU(part, &field, &grd, &param);
     } else {
       for (int is = 0; is < param.ns; is++)
         mover_PC(&part[is], &field, &grd, &param);
@@ -102,7 +102,12 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
     // interpolation particle to grid
     iInterp = cpuSecond();  // start timer for the interpolation step
     // interpolate species
-    for (int is = 0; is < param.ns; is++) interpP2G(&part[is], &ids[is], &grd);
+    for (int is = 0; is < param.ns; is++) {
+      if (useGPU)
+        interpP2G_GPU(&part[is], &ids[is], &grd);
+      else
+        interpP2G(&part[is], &ids[is], &grd);
+    }
     // apply BC to interpolated densities
     for (int is = 0; is < param.ns; is++) applyBCids(&ids[is], &grd, &param);
     // sum over species
@@ -154,6 +159,15 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
   return res;
 }
 
+double vecDiff(Vec3<FPpart> &v1, Vec3<FPpart> &v2) {
+  auto diff = v1 - v2;
+  auto sums = abs(v1) + abs(v2);
+  auto deltaX = abs(diff.x) / sums.x;
+  auto deltaY = abs(diff.y) / sums.y;
+  auto deltaZ = abs(diff.z) / sums.z;
+  return max(deltaX, max(deltaY, deltaZ));
+}
+
 int main(int argc, char **argv) {
   // Read the inputfile and fill the param structure
   parameters param;
@@ -188,13 +202,8 @@ int main(int argc, char **argv) {
                                  cpuResults.data[i].z);
       auto gpuVec = Vec3<FPpart>(gpuResults.data[i].x, gpuResults.data[i].y,
                                  gpuResults.data[i].z);
-      auto diff = gpuVec - cpuVec;
-      auto sums = abs(gpuVec) + abs(cpuVec);
+      auto delta = vecDiff(cpuVec, gpuVec);
 
-      auto deltaX = abs(diff.x) / sums.x;
-      auto deltaY = abs(diff.y) / sums.y;
-      auto deltaZ = abs(diff.z) / sums.z;
-      double delta = max(deltaX, max(deltaY, deltaZ));
       meanDelta += delta;
       maxDelta = max(delta, maxDelta);
 

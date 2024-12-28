@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
+
 // standard libraries
 #include <string>
 
@@ -6,7 +8,6 @@
 
 /** Simulation Parameters */
 struct parameters {
-
   /** light speed */
   double c;
   /** 4  pi */
@@ -166,7 +167,7 @@ struct parameters {
   /** Smoothing quantities */
   bool SmoothON;
   /** Smoothing value*/
-  double SmoothValue; // between 0 and 1, typically 0.5
+  double SmoothValue;  // between 0 and 1, typically 0.5
   /** Ntimes: smoothing is applied */
   int SmoothTimes;
 
@@ -203,3 +204,4 @@ struct parameters {
   /** name of the file with wave amplitude and phases */
   std::string WaveFile;
 };
+#endif
