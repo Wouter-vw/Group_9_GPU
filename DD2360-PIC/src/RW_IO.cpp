@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 
 #include "ConfigFile.h"
@@ -359,6 +360,7 @@ void VTK_Write_Vectors(int cycle, struct grid* grd, struct EMfield* field) {
   double dz = grd->dz;
 
   std::ofstream my_fileE(temp.c_str());
+  my_fileE << std::setprecision(10) << std::scientific;
   my_fileE << "# vtk DataFile Version 1.0" << std::endl;
   my_fileE << "E field" << std::endl;
   my_fileE << "ASCII" << std::endl;
@@ -391,6 +393,7 @@ void VTK_Write_Vectors(int cycle, struct grid* grd, struct EMfield* field) {
   temp += ".vtk";
   std::cout << "Opening file: " << temp << std::endl;
   std::ofstream my_file2(temp.c_str());
+  my_file2 << std::setprecision(10) << std::scientific;
   my_file2 << "# vtk DataFile Version 1.0" << std::endl;
   my_file2 << "B field" << std::endl;
   my_file2 << "ASCII" << std::endl;
@@ -442,6 +445,7 @@ void VTK_Write_Scalars(int cycle, struct grid* grd,
   double dz = grd->dz;
 
   std::ofstream my_file(temp.c_str());
+  my_file << std::setprecision(10) << std::scientific;
   my_file << "# vtk DataFile Version 1.0" << std::endl;
   my_file << "Electron Density - Current Sheet " << std::endl;
   my_file << "ASCII" << std::endl;
@@ -467,6 +471,7 @@ void VTK_Write_Scalars(int cycle, struct grid* grd,
   temp += ".vtk";
   std::cout << "Opening file: " << temp << std::endl;
   std::ofstream my_file2(temp.c_str());
+  my_file2 << std::setprecision(10) << std::scientific;
   my_file2 << "# vtk DataFile Version 1.0" << std::endl;
   my_file2 << "Ion Density - Current Sheet" << std::endl;
   my_file2 << "ASCII" << std::endl;
@@ -492,6 +497,7 @@ void VTK_Write_Scalars(int cycle, struct grid* grd,
   temp += ".vtk";
   std::cout << "Opening file: " << temp << std::endl;
   std::ofstream my_file1(temp.c_str());
+  my_file1 << std::setprecision(10) << std::scientific;
   my_file1 << "# vtk DataFile Version 1.0" << std::endl;
   my_file1 << "Net Charge Density" << std::endl;
   my_file1 << "ASCII" << std::endl;
