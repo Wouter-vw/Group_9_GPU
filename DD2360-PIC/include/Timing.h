@@ -1,7 +1,7 @@
 #ifndef TIMING_H
 #define TIMING_H
 
-#include <sys/time.h>
+#include <chrono>
 
 // return time in second
 double cpuSecond();
