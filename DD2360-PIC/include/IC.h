@@ -1,6 +1,7 @@
 #ifndef IC_H
 #define IC_H
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 /** initialize for magnetic reconnection probelm with Harris current sheet */
@@ -40,10 +41,11 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         for (int is = 0; is < param->ns; is++) {
           if (is < 2)  // current sheet
             ids[is].rhon[i][j][k] =
-                (FPinterp)((
-                    param->rhoINIT[is] /
-                    (cosh((grd->YN[i][j][k] - grd->Ly / 2) / param->delta) *
-                     cosh((grd->YN[i][j][k] - grd->Ly / 2) / param->delta)))) /
+                (FPinterp)((param->rhoINIT[is] /
+                            (cosh((grd->nodes[i][j][k].y - grd->Ly / 2) /
+                                  param->delta) *
+                             cosh((grd->nodes[i][j][k].y - grd->Ly / 2) /
+                                  param->delta)))) /
                 param->fourpi;
           else  // background
             ids[is].rhon[i][j][k] =
@@ -51,36 +53,38 @@ inline void initGEM(struct parameters* param, struct grid* grd,
         }
         // std::cout << "OK" << std::endl;
         //  electric field
-        //  electric field
-        field->Ex[i][j][k] = 0.0;
-        field->Ey[i][j][k] = 0.0;
-        field->Ez[i][j][k] = 0.0;
+        field->electricField[i][j][k].x = 0.0;
+        field->electricField[i][j][k].y = 0.0;
+        field->electricField[i][j][k].z = 0.0;
         field_aux->Exth[i][j][k] = 0.0;
         field_aux->Eyth[i][j][k] = 0.0;
         field_aux->Ezth[i][j][k] = 0.0;
         // Magnetic field
-        field->Bxn[i][j][k] =
-            param->B0x * tanh((grd->YN[i][j][k] - grd->Ly / 2) / param->delta);
+        field->magneticField[i][j][k].x =
+            param->B0x *
+            tanh((grd->nodes[i][j][k].y - grd->Ly / 2) / param->delta);
         // add the initial GEM perturbation
-        // Bxn[i][j][k] +=
+        // magneticField[i][j][k].x +=
         // (B0x/10.0)*(M_PI/Ly)*cos(2*M_PI*grid->getXN(i,j,k)/Lx)*sin(M_PI*(grid->getYN(i,j,k)-
         // Ly/2)/Ly  );
-        field->Byn[i][j][k] = param->B0y;  // -
-                                           // (B0x/10.0)*(2*M_PI/Lx)*sin(2*M_PI*grid->getXN(i,j,k)/Lx)*cos(M_PI*(grid->getYN(i,j,k)-
-                                           // Ly/2)/Ly);
+        field->magneticField[i][j][k].y =
+            param
+                ->B0y;  // -
+                        // (B0x/10.0)*(2*M_PI/Lx)*sin(2*M_PI*grid->getXN(i,j,k)/Lx)*cos(M_PI*(grid->getYN(i,j,k)-
+                        // Ly/2)/Ly);
         // add the initial X perturbation
-        xpert = grd->XN[i][j][k] - grd->Lx / 2;
-        ypert = grd->YN[i][j][k] - grd->Ly / 2;
+        xpert = grd->nodes[i][j][k].x - grd->Lx / 2;
+        ypert = grd->nodes[i][j][k].y - grd->Ly / 2;
         exp_pert = exp(-(xpert / param->delta) * (xpert / param->delta) -
                        (ypert / param->delta) * (ypert / param->delta));
-        field->Bxn[i][j][k] +=
+        field->magneticField[i][j][k].x +=
             (param->B0x * pertX) * exp_pert *
             (-cos(M_PI * xpert / 10.0 / param->delta) *
                  cos(M_PI * ypert / 10.0 / param->delta) * 2.0 * ypert /
                  param->delta -
              cos(M_PI * xpert / 10.0 / param->delta) *
                  sin(M_PI * ypert / 10.0 / param->delta) * M_PI / 10.0);
-        field->Byn[i][j][k] +=
+        field->magneticField[i][j][k].y +=
             (param->B0x * pertX) * exp_pert *
             (cos(M_PI * xpert / 10.0 / param->delta) *
                  cos(M_PI * ypert / 10.0 / param->delta) * 2.0 * xpert /
@@ -88,11 +92,11 @@ inline void initGEM(struct parameters* param, struct grid* grd,
              sin(M_PI * xpert / 10.0 / param->delta) *
                  cos(M_PI * ypert / 10.0 / param->delta) * M_PI / 10.0);
         // guide field
-        field->Bzn[i][j][k] = param->B0z;
+        field->magneticField[i][j][k].z = param->B0z;
       }
   // calculate B and rho at centers cells: first argument is on center cell
-  interpN2Cfield(field_aux->Bxc, field_aux->Byc, field_aux->Bzc, field->Bxn,
-                 field->Byn, field->Bzn, grd);
+  interpN2Cfield(field_aux->Bxc, field_aux->Byc, field_aux->Bzc,
+                 field->magneticField, grd);
   // interpolate densities species from node
   for (int is = 0; is < param->ns; is++) {
     interpN2Crho(&ids[is], grd);
@@ -120,16 +124,20 @@ inline void initGEM(struct parameters* param, struct grid* grd,
               for (int kk = 0; kk < part[is].npcely; kk++) {
                 // initialize each particle position and charge. Particle
                 // uniform in space
-                part[is].x[counter] =
-                    (ii + .5) * (grd->dx / part[is].npcelx) + grd->XN[i][j][k];
-                part[is].y[counter] =
-                    (jj + .5) * (grd->dy / part[is].npcely) + grd->YN[i][j][k];
-                part[is].z[counter] =
-                    (kk + .5) * (grd->dz / part[is].npcelz) + grd->ZN[i][j][k];
+                part[is].data[counter].x =
+                    (ii + .5) * (grd->dx / part[is].npcelx) +
+                    grd->nodes[i][j][k].x;
+                part[is].data[counter].y =
+                    (jj + .5) * (grd->dy / part[is].npcely) +
+                    grd->nodes[i][j][k].y;
+                part[is].data[counter].z =
+                    (kk + .5) * (grd->dz / part[is].npcelz) +
+                    grd->nodes[i][j][k].z;
                 // q = charge * statistical weight
-                part[is].q[counter] = (part[is].qom / fabs(part[is].qom)) *
-                                      (ids[is].rhoc[i][j][k] / part[is].npcel) *
-                                      (1.0 / grd->invVOL);
+                part[is].data[counter].q =
+                    (part[is].qom / fabs(part[is].qom)) *
+                    (ids[is].rhoc[i][j][k] / part[is].npcel) *
+                    (1.0 / grd->invVOL);
 
                 //////////////// Maxwellian ////////////////
                 // u
@@ -137,10 +145,10 @@ inline void initGEM(struct parameters* param, struct grid* grd,
                 prob = sqrt(-2.0 * log(1.0 - .999999 * harvest));
                 harvest = rand() / (double)RAND_MAX;
                 theta = 2.0 * M_PI * harvest;
-                part[is].u[counter] =
+                part[is].data[counter].u =
                     part[is].u0 + part[is].uth * prob * cos(theta);
                 // check u
-                if (part[is].u[counter] > param->c) {
+                if (part[is].data[counter].u > param->c) {
                   std::cout << "ERROR - u VELOCITY > c !" << std::endl;
                   exit(EXIT_FAILURE);
                 }
@@ -149,16 +157,16 @@ inline void initGEM(struct parameters* param, struct grid* grd,
                 prob = sqrt(-2.0 * log(1.0 - .999999 * harvest));
                 harvest = rand() / (double)RAND_MAX;
                 theta = 2.0 * M_PI * harvest;
-                part[is].w[counter] =
+                part[is].data[counter].w =
                     part[is].w0 + part[is].wth * prob * cos(theta);
-                part[is].v[counter] =
+                part[is].data[counter].v =
                     part[is].v0 + part[is].vth * prob * sin(theta);
                 // check v and w
-                if (part[is].v[counter] > param->c) {
+                if (part[is].data[counter].v > param->c) {
                   std::cout << "ERROR - v VELOCITY > c !" << std::endl;
                   exit(EXIT_FAILURE);
                 }
-                if (part[is].w[counter] > param->c) {
+                if (part[is].data[counter].w > param->c) {
                   std::cout << "ERROR - w VELOCITY > c !" << std::endl;
                   exit(EXIT_FAILURE);
                 }

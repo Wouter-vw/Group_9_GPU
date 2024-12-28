@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Alloc.h"
+#include "Basic.h"
 #include "Parameters.h"
 #include "PrecisionTypes.h"
 
@@ -50,16 +51,10 @@ struct grid {
   /** Periodicity for fields Z **/
   bool PERIODICZ;
 
-  // Nodes coordinate
-  /** coordinate node X */
-  FPfield* XN_flat;
-  FPfield*** XN;
-  /** coordinate node Y */
-  FPfield* YN_flat;
-  FPfield*** YN;
-  /** coordinate node Z */
-  FPfield* ZN_flat;
-  FPfield*** ZN;
+  // Nodes coordinates
+  // Originally arrays XN, YN, ZN
+  Vec3<FPfield>* nodes_flat;
+  Vec3<FPfield>*** nodes;
 };
 
 /** Set up the grid quantities */
@@ -72,8 +67,8 @@ void printGrid(struct grid*);
 void grid_deallocate(struct grid*);
 
 /** interpolation Node to Center */
-void interpN2Cfield(FPfield***, FPfield***, FPfield***, FPfield***, FPfield***,
-                    FPfield***, struct grid*);
+void interpN2Cfield(FPfield***, FPfield***, FPfield***, Vec3<FPfield>***,
+                    struct grid*);
 
 /** interpolation Node to Center */
 void interpC2Ninterp(FPinterp***, FPinterp***, struct grid*);

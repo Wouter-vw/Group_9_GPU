@@ -1,10 +1,30 @@
 #ifndef Basic_H
 #define Basic_H
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "PrecisionTypes.h"
 
+template <typename T>
+class Vec3 {
+ public:
+  T x, y, z;
+  Vec3() : x(0), y(0), z(0) {}
+  Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
+
+  Vec3 operator-(const Vec3<T> &v) const {
+    return Vec3<T>(x - v.x, y - v.y, z - v.z);
+  }
+  Vec3 operator+(const Vec3<T> &v) const {
+    return Vec3<T>(x + v.x, y + v.y, z + v.z);
+  }
+};
+
+template <typename T>
+Vec3<T> abs(Vec3<T> v) {
+  return Vec3<T>(abs(v.x), abs(v.y), abs(v.z));
+}
 /** method to calculate the parallel dot product with vect1, vect2 having the
  * ghost cells*/
 double dotP(FPfield *vect1, FPfield *vect2, int n);

@@ -10,6 +10,17 @@
 #include "Parameters.h"
 #include "PrecisionTypes.h"
 
+struct Particle {
+  // position
+  FPpart x, y, z;
+  // velocity
+  FPpart u, v, w;
+  // charge
+  /** q must have precision of interpolated quantities: typically double. Not
+  used in mover */
+  FPinterp q;
+};
+
 struct particles {
   /** species ID: 0, 1, 2 , ... */
   int species_ID;
@@ -42,32 +53,27 @@ struct particles {
   FPpart u0, v0, w0;
   FPpart uth, vth, wth;
 
-  /** particle arrays: 1D arrays[npmax] */
-  FPpart* x;
-  FPpart* y;
-  FPpart* z;
-  FPpart* u;
-  FPpart* v;
-  FPpart* w;
-  /** q must have precision of interpolated quantities: typically double. Not
-   * used in mover */
-  FPinterp* q;
+  // /** particle arrays: 1D arrays[npmax] */
+  Particle *data;
 };
 
 /** allocate particle arrays */
-void particle_allocate(struct parameters*, struct particles*, int);
+void particle_allocate(struct parameters *, struct particles *, int);
 
 /** deallocate */
-void particle_deallocate(struct particles*);
+void particle_deallocate(struct particles *);
 
 /** particle mover */
-int mover_PC(struct particles*, struct EMfield*, struct grid*,
-             struct parameters*);
-int mover_PC_GPU(struct particles*, struct EMfield*, struct grid*,
-                 struct parameters*);
+int mover_PC(struct particles *, struct EMfield *, struct grid *,
+             struct parameters *);
+
+int mover_PC_GPU(struct particles *, struct EMfield *, struct grid *,
+                 struct parameters *);
 
 /** Interpolation Particle --> Grid: This is for species */
-void interpP2G(struct particles*, struct interpDensSpecies*, struct grid*);
-void interpP2G_GPU(struct particles*, struct interpDensSpecies*, struct grid*);
+void interpP2G(struct particles *, struct interpDensSpecies *, struct grid *);
+
+void interpP2G_GPU(struct particles *, struct interpDensSpecies *,
+                   struct grid *);
 
 #endif
