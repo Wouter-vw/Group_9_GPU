@@ -1,9 +1,10 @@
 #ifndef EMFIELD_H
 #define EMFIELD_H
 
+#include <nvtx3/nvtx3.hpp>
+
 #include "Alloc.h"
 #include "Grid.h"
-
 
 /** structure with field information */
 struct EMfield {

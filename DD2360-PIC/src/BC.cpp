@@ -7,6 +7,7 @@
 /** Apply BC to scalar interp quantity defined on nodes - Interpolation quantity
  */
 void applyBCscalarDensN(FPinterp*** scalarN, grid* grd, parameters* param) {
+  NVTX3_FUNC_RANGE();
   ///////////////////////
   ///
   ///    FACE

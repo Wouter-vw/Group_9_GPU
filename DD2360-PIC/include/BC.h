@@ -1,10 +1,12 @@
 #ifndef BC_H
 #define BC_H
 
-#include "InterpDensSpecies.h"
-#include "PrecisionTypes.h"
-#include "Parameters.h"
+#include <nvtx3/nvtx3.hpp>
+
 #include "Grid.h"
+#include "InterpDensSpecies.h"
+#include "Parameters.h"
+#include "PrecisionTypes.h"
 
 /** Put Boundary Conditions on Boundaries */
 

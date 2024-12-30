@@ -7,6 +7,7 @@
 #include "PrecisionTypes.h"
 #include "Grid.h"
 #include "InterpDensSpecies.h"
+#include <nvtx3/nvtx3.hpp>
 
 struct interpDensNet {
     

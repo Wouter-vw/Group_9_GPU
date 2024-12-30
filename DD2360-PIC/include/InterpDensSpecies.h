@@ -4,7 +4,7 @@
 #include "Alloc.h"
 #include "PrecisionTypes.h"
 #include "Grid.h"
-
+#include <nvtx3/nvtx3.hpp>
 /** Interpolated densities per species on nodes */
 struct interpDensSpecies {
     

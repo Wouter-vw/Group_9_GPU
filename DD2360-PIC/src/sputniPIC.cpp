@@ -43,10 +43,14 @@ struct SimulationResult {
 };
 
 SimulationResult runSimulation(parameters &param, bool useGPU) {
+  NVTX3_FUNC_RANGE();
   // Timing variables
   double iStart = cpuSecond();
 
   double iMover, iInterp, eMover = 0.0, eInterp = 0.0;
+
+  nvtxRangePushA("allocations");
+
   grid grd;
   setGrid(&param, &grd);
 
@@ -71,6 +75,7 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
   for (int is = 0; is < param.ns; is++) {
     particle_allocate(&param, &part[is], is);
   }
+  nvtxRangePop();
 
   // Initialization
   initGEM(&param, &grd, &field, &field_aux, part, ids);
@@ -78,52 +83,64 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
   // **********************************************************//
   // **** Start the Simulation!  Cycle index start from 1  *** //
   // **********************************************************//
-  for (int cycle = param.first_cycle_n;
-       cycle < (param.first_cycle_n + param.ncycles); cycle++) {
-    std::cout << std::endl;
-    std::cout << "***********************" << std::endl;
-    std::cout << "   cycle = " << cycle << std::endl;
-    std::cout << "***********************" << std::endl;
+  {
+    auto rId = useGPU ? "simulation_GPU" : "simulation_CPU";
+    nvtx3::scoped_range r{rId};
+    for (int cycle = param.first_cycle_n;
+         cycle < (param.first_cycle_n + param.ncycles); cycle++) {
+      std::cout << std::endl;
+      std::cout << "***********************" << std::endl;
+      std::cout << "   cycle = " << cycle << std::endl;
+      std::cout << "***********************" << std::endl;
 
-    // set to zero the densities - needed for interpolation
-    setZeroDensities(&idn, ids, &grd, param.ns);
+      // set to zero the densities - needed for interpolation
+      setZeroDensities(&idn, ids, &grd, param.ns);
 
-    // implicit mover
-    iMover = cpuSecond();  // start timer for mover
-    if (useGPU) {
-      mover_PC_GPU(part, &field, &grd, &param);
-    } else {
-      for (int is = 0; is < param.ns; is++)
-        mover_PC(&part[is], &field, &grd, &param);
-    }
+      // implicit mover
+      iMover = cpuSecond();  // start timer for mover
+      {
+        nvtx3::scoped_range moverRange{useGPU ? "moverPC_GPU_cycle"
+                                              : "moverPC_CPU_cycle"};
+        if (useGPU) {
+          mover_PC_GPU(part, &field, &grd, &param);
+        } else {
+          for (int is = 0; is < param.ns; is++)
+            mover_PC(&part[is], &field, &grd, &param);
+        }
+      }
 
-    eMover += (cpuSecond() - iMover);  // stop timer for mover
+      eMover += (cpuSecond() - iMover);  // stop timer for mover
 
-    // interpolation particle to grid
-    iInterp = cpuSecond();  // start timer for the interpolation step
-    // interpolate species
-    for (int is = 0; is < param.ns; is++) {
-      if (useGPU)
-        interpP2G_GPU(&part[is], &ids[is], &grd);
-      else
-        interpP2G(&part[is], &ids[is], &grd);
-    }
-    // apply BC to interpolated densities
-    for (int is = 0; is < param.ns; is++) applyBCids(&ids[is], &grd, &param);
-    // sum over species
-    sumOverSpecies(&idn, ids, &grd, param.ns);
-    // interpolate charge density from center to node
-    applyBCscalarDensN(idn.rhon, &grd, &param);
+      // interpolation particle to grid
+      iInterp = cpuSecond();  // start timer for the interpolation step
+      // interpolate species
+      {
+        nvtx3::scoped_range interpRange{useGPU ? "interpP2G_GPU_cycle"
+                                               : "interpP2G_CPU_cycle"};
+        for (int is = 0; is < param.ns; is++) {
+          if (useGPU)
+            interpP2G_GPU(&part[is], &ids[is], &grd);
+          else
+            interpP2G(&part[is], &ids[is], &grd);
+        }
+      }
+      // apply BC to interpolated densities
+      for (int is = 0; is < param.ns; is++) applyBCids(&ids[is], &grd, &param);
+      // sum over species
+      sumOverSpecies(&idn, ids, &grd, param.ns);
+      // interpolate charge density from center to node
+      applyBCscalarDensN(idn.rhon, &grd, &param);
 
-    // write E, B, rho to disk
-    if (cycle % param.FieldOutputCycle == 0) {
-      VTK_Write_Vectors(cycle, &grd, &field);
-      VTK_Write_Scalars(cycle, &grd, ids, &idn);
-    }
+      // write E, B, rho to disk
+      if (cycle % param.FieldOutputCycle == 0) {
+        nvtx3::scoped_range ioScope{"write_fields"};
+        VTK_Write_Vectors(cycle, &grd, &field);
+        VTK_Write_Scalars(cycle, &grd, ids, &idn);
+      }
 
-    eInterp += (cpuSecond() - iInterp);  // stop timer for interpolation
-  }  // end of one PIC cycle
-
+      eInterp += (cpuSecond() - iInterp);  // stop timer for interpolation
+    }  // end of one PIC cycle
+  }
   Particle *data = new Particle[part->nop];
   for (int i = 0; i < part->nop; i++) {
     data[i] = part->data[i];
@@ -132,17 +149,20 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
   res.data = std::unique_ptr<Particle[]>(data);
   res.size = part->nop;
 
-  /// Release the resources
-  // deallocate field
-  grid_deallocate(&grd);
-  field_deallocate(&grd, &field);
-  // interp
-  interp_dens_net_deallocate(&grd, &idn);
+  {
+    nvtx3::scoped_range r{"deallocations"};
+    /// Release the resources
+    // deallocate field
+    grid_deallocate(&grd);
+    field_deallocate(&grd, &field);
+    // interp
+    interp_dens_net_deallocate(&grd, &idn);
 
-  // Deallocate interpolated densities and particles
-  for (int is = 0; is < param.ns; is++) {
-    interp_dens_species_deallocate(&grd, &ids[is]);
-    particle_deallocate(&part[is]);
+    // Deallocate interpolated densities and particles
+    for (int is = 0; is < param.ns; is++) {
+      interp_dens_species_deallocate(&grd, &ids[is]);
+      particle_deallocate(&part[is]);
+    }
   }
   double iElaps = cpuSecond() - iStart;
 
@@ -172,9 +192,12 @@ int main(int argc, char **argv) {
   // Read the inputfile and fill the param structure
   parameters param;
   // Read the input file name from command line
-  readInputFile(&param, argc, argv);
-  printParameters(&param);
-  saveParameters(&param);
+  {
+    nvtx3::scoped_range r{"input_read"};
+    readInputFile(&param, argc, argv);
+    printParameters(&param);
+    saveParameters(&param);
+  }
 
   bool runCpu = false;
   bool runGpu = true;

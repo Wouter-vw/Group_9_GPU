@@ -4,10 +4,13 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include <nvtx3/nvtx3.hpp>
+
 /** initialize for magnetic reconnection probelm with Harris current sheet */
 inline void initGEM(struct parameters* param, struct grid* grd,
                     struct EMfield* field, struct EMfield_aux* field_aux,
                     struct particles* part, struct interpDensSpecies* ids) {
+  NVTX3_FUNC_RANGE();
   // perturbation localized in X
   double pertX = 0.4;
   double xpert, ypert, exp_pert;

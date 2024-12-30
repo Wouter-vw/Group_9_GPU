@@ -9,6 +9,7 @@
 #include "InterpDensSpecies.h"
 #include "Parameters.h"
 #include "PrecisionTypes.h"
+#include <nvtx3/nvtx3.hpp>
 
 struct Particle {
   // position
