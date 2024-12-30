@@ -2,6 +2,7 @@
 #define GRID_H
 
 #include <iostream>
+#include <nvtx3/nvtx3.hpp>
 
 #include "Alloc.h"
 #include "Basic.h"

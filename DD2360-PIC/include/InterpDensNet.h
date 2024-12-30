@@ -3,11 +3,12 @@
 
 /** Interpolated densities - Net = sum all of species contributions */
 
+#include <nvtx3/nvtx3.hpp>
+
 #include "Alloc.h"
-#include "PrecisionTypes.h"
 #include "Grid.h"
 #include "InterpDensSpecies.h"
-#include <nvtx3/nvtx3.hpp>
+#include "PrecisionTypes.h"
 
 struct interpDensNet {
     
