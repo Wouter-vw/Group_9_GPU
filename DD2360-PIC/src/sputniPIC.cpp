@@ -102,7 +102,9 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
         nvtx3::scoped_range moverRange{useGPU ? "moverPC_GPU_cycle"
                                               : "moverPC_CPU_cycle"};
         if (useGPU) {
-          mover_PC_GPU(part, &field, &grd, &param);
+          // mover_PC_GPU(part, &field, &grd, &param);
+          for (int is = 0; is < param.ns; is++)
+            mover_PC(&part[is], &field, &grd, &param);
         } else {
           for (int is = 0; is < param.ns; is++)
             mover_PC(&part[is], &field, &grd, &param);
