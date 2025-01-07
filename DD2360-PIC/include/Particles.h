@@ -76,5 +76,7 @@ void interpP2G(struct particles *, struct interpDensSpecies *, struct grid *);
 
 void interpP2G_GPU(struct particles *, struct interpDensSpecies *,
                    struct grid *);
+void interpP2G_GPU_sync(struct particles *, struct interpDensSpecies *,
+                   struct grid *);
 
 #endif

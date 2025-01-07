@@ -1078,10 +1078,6 @@ void interpP2G_GPU_sync(struct particles *part, struct interpDensSpecies *ids,
     int nzn = grd->nzn;
     int nop = part->nop;
 
-    constexpr int nStreams = 10;
-    cudaStream_t stream[nStreams];
-    for (auto &i: stream) cudaStreamCreate(&i);
-
     // Device pointers -> Free at the end
     Particle *d_data;
     FPpart *d_weight;
@@ -1115,16 +1111,13 @@ void interpP2G_GPU_sync(struct particles *part, struct interpDensSpecies *ids,
                nxn * nyn * nzn * sizeof(Vec3<FPfield>),
                cudaMemcpyHostToDevice);
 
-    // for (int i = 0; i < 2; ++i) cudaStreamSynchronize(stream[i]);
-
     int threadsPerBlock = 256;
     int blocksPerGrid = (part->nop + threadsPerBlock - 1) / threadsPerBlock;
 
-    calculate_weight<<<blocksPerGrid, threadsPerBlock, 0, stream[5]>>>(
+    calculate_weight<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_nodes, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
 
-    for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
 
     cudaMemcpy(d_rhon_flat, ids->rhon_flat, currentStreamSize,
                cudaMemcpyHostToDevice);
@@ -1147,40 +1140,37 @@ void interpP2G_GPU_sync(struct particles *part, struct interpDensSpecies *ids,
     cudaMemcpy(d_pzz_flat, ids->pzz_flat, currentStreamSize,
                cudaMemcpyHostToDevice);
 
-    // for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
-
-    interpP2G_kernel_rhon<<<blocksPerGrid, threadsPerBlock, 0, stream[0]>>>(
+    interpP2G_kernel_rhon<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_rhon_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_Jx<<<blocksPerGrid, threadsPerBlock, 0, stream[1]>>>(
+    interpP2G_kernel_Jx<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_Jx_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_Jy<<<blocksPerGrid, threadsPerBlock, 0, stream[2]>>>(
+    interpP2G_kernel_Jy<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_Jy_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_Jz<<<blocksPerGrid, threadsPerBlock, 0, stream[3]>>>(
+    interpP2G_kernel_Jz<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_Jz_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_pxx<<<blocksPerGrid, threadsPerBlock, 0, stream[4]>>>(
+    interpP2G_kernel_pxx<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_pxx_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_pxy<<<blocksPerGrid, threadsPerBlock, 0, stream[5]>>>(
+    interpP2G_kernel_pxy<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_pxy_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_pxz<<<blocksPerGrid, threadsPerBlock, 0, stream[6]>>>(
+    interpP2G_kernel_pxz<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_pxz_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_pyy<<<blocksPerGrid, threadsPerBlock, 0, stream[7]>>>(
+    interpP2G_kernel_pyy<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_pyy_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_pyz<<<blocksPerGrid, threadsPerBlock, 0, stream[8]>>>(
+    interpP2G_kernel_pyz<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_pyz_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
-    interpP2G_kernel_pzz<<<blocksPerGrid, threadsPerBlock, 0, stream[9]>>>(
+    interpP2G_kernel_pzz<<<blocksPerGrid, threadsPerBlock, 0>>>(
         d_data, d_pzz_flat, d_weight, grd->invVOL, grd->xStart, grd->yStart,
         grd->zStart, grd->invdx, grd->invdy, grd->invdz, nxn, nyn, nzn, nop);
 
-    for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
 
     cudaMemcpy(ids->rhon_flat, d_rhon_flat, currentStreamSize,
                cudaMemcpyDeviceToHost);
@@ -1203,7 +1193,6 @@ void interpP2G_GPU_sync(struct particles *part, struct interpDensSpecies *ids,
     cudaMemcpy(ids->pzz_flat, d_pzz_flat, currentStreamSize,
                cudaMemcpyDeviceToHost);
 
-    // for (int i = 0; i < nStreams; ++i) cudaStreamSynchronize(stream[i]);
     // Free cuda arrays
     cudaFree(d_data);
     cudaFree(d_nodes);
@@ -1218,7 +1207,6 @@ void interpP2G_GPU_sync(struct particles *part, struct interpDensSpecies *ids,
     cudaFree(d_pyz_flat);
     cudaFree(d_pzz_flat);
     cudaFree(d_weight);
-    for (int i = 0; i < nStreams; ++i) cudaStreamDestroy(stream[i]);
 }
 
 void interpP2G_GPU(struct particles *part, struct interpDensSpecies *ids,
