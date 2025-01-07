@@ -6,7 +6,7 @@ set(CMAKE_CUDA_ARCHITECTURES 75)  # Adjust for your GPU
 # Project name and language (just CUDA since we're compiling everything with it)
 project(sputniPIC LANGUAGES CUDA CXX)
 
-# Set CUDA standard to match C++11
+# Set CUDA standard to match C++17
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 

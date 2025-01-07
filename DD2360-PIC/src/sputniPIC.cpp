@@ -42,6 +42,12 @@ struct SimulationResult {
   double elaps;
 };
 
+/**
+ * Run a simulation with the given parameters.
+ * useGPU determines if the simulation will use the GPU implementations.
+ *
+ * Returns a SimulationResult instance containing the output particle structs.
+ */
 SimulationResult runSimulation(parameters &param, bool useGPU) {
   NVTX3_FUNC_RANGE();
   // Timing variables
@@ -102,9 +108,8 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
         nvtx3::scoped_range moverRange{useGPU ? "moverPC_GPU_cycle"
                                               : "moverPC_CPU_cycle"};
         if (useGPU) {
-          // mover_PC_GPU(part, &field, &grd, &param);
-          for (int is = 0; is < param.ns; is++)
-            mover_PC(&part[is], &field, &grd, &param);
+          // mover PC individual particiles are handled within the call
+          mover_PC_GPU(part, &field, &grd, &param);
         } else {
           for (int is = 0; is < param.ns; is++)
             mover_PC(&part[is], &field, &grd, &param);
@@ -143,6 +148,7 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
       eInterp += (cpuSecond() - iInterp);  // stop timer for interpolation
     }  // end of one PIC cycle
   }
+  nvtxRangePushA("allocations");
   Particle *data = new Particle[part->nop];
   for (int i = 0; i < part->nop; i++) {
     data[i] = part->data[i];
@@ -150,6 +156,7 @@ SimulationResult runSimulation(parameters &param, bool useGPU) {
   SimulationResult res;
   res.data = std::unique_ptr<Particle[]>(data);
   res.size = part->nop;
+  nvtxRangePop();
 
   {
     nvtx3::scoped_range r{"deallocations"};
@@ -201,7 +208,7 @@ int main(int argc, char **argv) {
     saveParameters(&param);
   }
 
-  bool runCpu = false;
+  bool runCpu = true;
   bool runGpu = true;
   auto oCpuResults = std::optional<SimulationResult>{};
   auto oGpuResults = std::optional<SimulationResult>{};
@@ -214,6 +221,8 @@ int main(int argc, char **argv) {
     oGpuResults = std::optional<SimulationResult>{runSimulation(param, true)};
   }
 
+  // If both CPU and GPU simulations are run, compare the final particle structs to validate
+  // correctness of the GPU implementation.
   if (runCpu && runGpu) {
     double maxDelta = 0.0, meanDelta = 0.0;
     // Open a file to write delta values

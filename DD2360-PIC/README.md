@@ -2,9 +2,15 @@
 
 ## Pre-requisites
 
-- CMake
+- CMake >= 3.14
 - Make
 - CUDA Toolkit
+
+Modify 'CMakeLists.txt' to include an appropriate CUDA architecture (if needed) for the target device. Currently, has only be set for architecture 75.
+
+```cmake
+set(CMAKE_CUDA_ARCHITECTURES 75) 
+```
 
 ## Running
 
